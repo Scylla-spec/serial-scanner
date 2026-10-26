@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0B0F19">
+  <meta name="description" content="Fast, phone-based continuous barcode scanning web app that collects serial numbers and exports directly into Assets import template .xlsx format.">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <title>Serial Scanner | Asset Register PWA</title>
+
+  <!-- Local libraries with automatic CDN fallback -->
+  <script src="./html5-qrcode.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'"></script>
+  <script src="./xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'"></script>
+
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --surface: #111827;
+      --surface-card: #182234;
+      --surface-elevated: #1F2E45;
+      --border: #2A384F;
+      --border-focus: #3B82F6;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --success: #10B981;
+      --success-dark: #064E3B;
+      --success-border: #059669;
+      --danger: #EF4444;
+      --danger-dark: #7F1D1D;
+      --danger-border: #DC2626;
+      --warning: #F59E0B;
+      --warning-dark: #78350F;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.4;
+      padding-bottom: 96px; /* Space for sticky footer */
+      overflow-x: hidden;
+    }
+
+    /* Header Bar */
+    header {
+      background: rgba(17, 24, 39, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      padding: 12px 16px;
+    }
+
+    .header-content {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #2563EB, #10B981);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+
+    .brand-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: #ffffff;
+    }
+
+    .brand-text h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+    }
+
+    .brand-text span {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      display: block;
+      line-height: 1.1;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .counter-badge {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #E2E8F0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .counter-badge .count-number {
+      font-family: var(--font-mono);
+      color: #60A5FA;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .icon-btn {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      background: #27364F;
+      border-color: #3F5170;
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+
+    /* Main Container */
+    main {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    /* Camera Section */
+    .camera-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    .camera-viewport-wrap {
+      position: relative;
+      width: 100%;
+      min-height: 240px;
+      height: 38vh;
+      max-height: 360px;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #reader {
+      width: 100% !important;
+      height: 100% !important;
+      border: none !important;
+    }
+
+    #reader video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+
+    /* Camera Idle State Placeholder */
+    .camera-idle-view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: radial-gradient(circle at center, #182234 0%, #080C14 100%);
+      color: var(--text-muted);
+      z-index: 5;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .camera-idle-view svg {
+      width: 48px;
+      height: 48px;
+      stroke: var(--text-dim);
+      opacity: 0.8;
+    }
+
+    .camera-idle-view p {
+      font-size: 0.9rem;
+      max-width: 280px;
+    }
+
+    /* Scan Overlay Reticle */
+    .scan-reticle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 82%;
+      max-width: 320px;
+      height: 120px;
+      border: 2px dashed rgba(96, 165, 250, 0.7);
+      border-radius: 10px;
+      pointer-events: none;
+      z-index: 10;
+      display: none;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+    }
+
+    .camera-active .scan-reticle {
+      display: block;
+    }
+
+    .scan-laser {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #38BDF8, #60A5FA, transparent);
+      box-shadow: 0 0 8px #38BDF8;
+      animation: laserScan 2s infinite ease-in-out;
+    }
+
+    @keyframes laserScan {
+      0%, 100% { top: 6%; opacity: 0.4; }
+      50% { top: 92%; opacity: 1; }
+    }
+
+    /* Camera Controls Bar */
+    .camera-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Banner Component */
+    .banner-container {
+      transition: all 0.25s ease;
+      min-height: 60px;
+    }
+
+    #banner {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      position: relative;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+
+    #banner.banner-good {
+      background: var(--success-dark);
+      border-color: var(--success-border);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+      animation: popGood 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    #banner.banner-bad {
+      background: var(--danger-dark);
+      border-color: var(--danger-border);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+      animation: shakeBad 0.35s ease-in-out;
+    }
+
+    #banner.banner-confirm {
+      background: #3B2808;
+      border-color: #D97706;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
+    }
+
+    @keyframes popGood {
+      0% { transform: scale(0.97); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes shakeBad {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    .banner-status-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .banner-good .banner-status-tag { color: #34D399; }
+    .banner-bad .banner-status-tag { color: #FCA5A5; }
+    .banner-confirm .banner-status-tag { color: #FCD34D; }
+
+    .banner-value {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 700;
+      word-break: break-all;
+      letter-spacing: 0.02em;
+    }
+
+    .banner-confirm-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    /* Buttons (Large Touch Targets >= 48px) */
+    button, .btn {
+      min-height: 48px;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    button:disabled, .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button:active, .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: #059669;
+      color: #FFFFFF;
+    }
+    .btn-success:hover:not(:disabled) {
+      background: #047857;
+    }
+
+    .btn-danger {
+      background: #DC2626;
+      color: #FFFFFF;
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: #B91C1C;
+    }
+
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #27364F;
+      border-color: #3F5170;
+    }
+
+    .btn-torch-active {
+      background: #CA8A04 !important;
+      color: #FFFFFF !important;
+      border-color: #EAB308 !important;
+      box-shadow: 0 0 12px rgba(234, 179, 8, 0.5);
+    }
+
+    /* Manual Entry Card */
+    .manual-entry-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+
+    .manual-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-field {
+      flex: 1;
+      height: 48px;
+      padding: 0 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .input-field:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    .input-field::placeholder {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    /* Collapsible Sections (Settings & Batch Defaults) */
+    .collapsible-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+
+    .collapsible-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      background: var(--surface);
+      transition: background 0.15s;
+    }
+
+    .collapsible-header:hover {
+      background: var(--surface-card);
+    }
+
+    .collapsible-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #E5E7EB;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .collapsible-badge {
+      font-size: 0.7rem;
+      background: #1E3A8A;
+      color: #93C5FD;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .collapsible-chevron {
+      transition: transform 0.2s ease;
+      stroke: var(--text-muted);
+    }
+
+    .collapsible-open .collapsible-chevron {
+      transform: rotate(180deg);
+    }
+
+    .collapsible-content {
+      display: none;
+      padding: 14px 16px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+
+    .collapsible-open .collapsible-content {
+      display: block;
+    }
+
+    /* Settings Controls */
+    .settings-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 38px;
+    }
+
+    .toggle-label {
+      font-size: 0.9rem;
+      color: #D1D5DB;
+    }
+
+    .toggle-label span {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Switch Component */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #374151;
+      transition: 0.25s;
+      border-radius: 28px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.25s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #2563EB;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Batch Defaults Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .form-group input, .form-group select {
+      height: 42px;
+      padding: 0 10px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--border-focus);
+    }
+
+    /* Scanned List Section */
+    .list-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 2px;
+    }
+
+    .list-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #E2E8F0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .list-filter-input {
+      max-width: 180px;
+      height: 34px;
+      padding: 0 10px;
+      font-size: 0.82rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      outline: none;
+    }
+
+    .list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .list-empty-state {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px 16px;
+      text-align: center;
+      color: var(--text-dim);
+    }
+
+    .list-empty-state svg {
+      width: 40px;
+      height: 40px;
+      stroke: var(--text-dim);
+      margin-bottom: 8px;
+      opacity: 0.6;
+    }
+
+    .scan-item-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .scan-item-card:hover {
+      background: var(--surface-card);
+      border-color: #374762;
+    }
+
+    .scan-item-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .scan-item-serial-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .scan-item-serial {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .scan-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .source-tag {
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .source-tag.camera {
+      background: #064E3B;
+      color: #6EE7B7;
+    }
+
+    .source-tag.manual {
+      background: #1E3A8A;
+      color: #93C5FD;
+    }
+
+    .scan-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .action-btn {
+      min-height: 38px;
+      height: 38px;
+      width: 38px;
+      padding: 0;
+      border-radius: var(--radius-sm);
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .action-btn:hover {
+      color: #FFFFFF;
+      background: #27364F;
+    }
+
+    .action-btn.delete-btn:hover {
+      color: #F87171;
+      border-color: #7F1D1D;
+      background: #450A0A;
+    }
+
+    .action-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+    }
+
+    /* Sticky Footer Bar */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(11, 15, 25, 0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      z-index: 50;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .footer-content {
+      max-width: 680px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 440px) {
+      .footer-content {
+        grid-template-columns: 1.8fr 1fr 1fr;
+        gap: 6px;
+      }
+      .footer-content button {
+        padding: 8px 10px;
+        font-size: 0.88rem;
+      }
+    }
+
+    /* Modal Dialog */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.modal-active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 440px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-card h3 {
+      font-size: 1.1rem;
+      color: #FFFFFF;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    /* Screen Flash Overlay */
+    #flashOverlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 99;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen Flash Overlay -->
+  <div id="flashOverlay"></div>
+
+  <!-- Header Bar -->
+  <header>
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2 4h3v2H2V4zm0 14h3v2H2v-2zm17-14h3v2h-3V4zm0 14h3v2h-3v-2zM6 4h1v16H6V4zm3 0h2v16H9V4zm4 0h1v16h-1V4zm3 0h1v16h-1V4z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Serial Scanner</h1>
+          <span>Assets Import Companion</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="counter" class="counter-badge" title="Total Serial Numbers Collected">
+          Scanned: <span class="count-number" id="countDisplay">0</span>
+        </div>
+        <button id="btnSoundToggle" class="icon-btn" title="Toggle Beep Audio">
+          <svg id="soundIconOn" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <svg id="soundIconOff" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Camera Viewport Card -->
+    <section class="camera-card" id="cameraCard">
+      <div class="camera-viewport-wrap">
+        <div id="reader"></div>
+        <div class="scan-reticle">
+          <div class="scan-laser"></div>
+        </div>
+        <div class="camera-idle-view" id="cameraIdleView">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          <p>Camera is currently standby. Press <strong>Start Camera</strong> to begin scanning barcode labels.</p>
+        </div>
+      </div>
+      <div class="camera-controls">
+        <button id="btnStart" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span id="btnStartText">Start Camera</span>
+        </button>
+        <button id="btnTorch" class="btn btn-secondary" disabled>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6l-6-4-6 4v3a6 6 0 0 0 6 6v7h4v-7a6 6 0 0 0 6-6V6z"></path>
+          </svg>
+          <span id="btnTorchText">Torch</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Last Scan Banner Component -->
+    <div class="banner-container">
+      <div id="banner">
+        <div class="banner-status-tag" id="bannerTag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span id="bannerTagText">Ready</span>
+        </div>
+        <div class="banner-value" id="bannerValue">No serial scanned yet</div>
+        <div class="banner-confirm-actions" id="bannerConfirmActions" style="display: none;">
+          <button id="btnConfirmSave" class="btn btn-success" style="flex:1;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Save Scan
+          </button>
+          <button id="btnConfirmDiscard" class="btn btn-danger" style="flex:1;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            Rescan / Discard
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Entry Box (Bluetooth Scanner Gun Ready) -->
+    <section class="manual-entry-card">
+      <form class="manual-form" id="manualForm" onsubmit="return false;">
+        <input 
+          type="text" 
+          id="manualInput" 
+          class="input-field" 
+          placeholder="Manual serial entry / Barcode gun..." 
+          autocomplete="off" 
+          autocorrect="off" 
+          autocapitalize="characters" 
+          spellcheck="false"
+        >
+        <button id="btnAdd" class="btn btn-primary" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add
+        </button>
+      </form>
+    </section>
+
+    <!-- Collapsible Settings Panel -->
+    <section class="collapsible-card" id="cardSettings">
+      <div class="collapsible-header" onclick="toggleCollapsible('cardSettings')">
+        <div class="collapsible-title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Scanner & Validation Settings
+        </div>
+        <svg class="collapsible-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div class="collapsible-content">
+        <div class="settings-grid">
+          <div class="toggle-row">
+            <div class="toggle-label">
+              Confirm each scan mode
+              <span>Pauses for confirmation before saving candidate barcode</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggleConfirmScan">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label">
+              Force Uppercase
+              <span>Automatically converts serial letters to uppercase</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggleUppercase" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label">
+              Strip Whitespace
+              <span>Removes spaces and control characters from barcodes</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggleTrimSpaces" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label">
+              Vibration Haptics
+              <span>Vibrate device on scan and duplicate events</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggleVibration" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group" style="margin-top: 4px;">
+            <label for="inputMinLength">Minimum Serial Length (Filters Junk/Noise)</label>
+            <input type="number" id="inputMinLength" value="4" min="1" max="50">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Collapsible Batch Defaults Panel (Step 9) -->
+    <section class="collapsible-card" id="cardDefaults">
+      <div class="collapsible-header" onclick="toggleCollapsible('cardDefaults')">
+        <div class="collapsible-title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Batch Defaults (.xlsx Export)
+          <span class="collapsible-badge" id="defaultsStatusBadge">Optional</span>
+        </div>
+        <svg class="collapsible-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div class="collapsible-content">
+        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 12px;">
+          Values specified here will be automatically populated into their respective columns (Asset Name, Asset Type, Shop, Complex, Condition, Purchase Date) for every row in the exported Excel spreadsheet.
+        </p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="defAssetName">Asset Name (Col A)</label>
+            <input type="text" id="defAssetName" placeholder="e.g. DELL LATITUDE 5420">
+          </div>
+          <div class="form-group">
+            <label for="defAssetType">Asset Type (Col C)</label>
+            <input type="text" id="defAssetType" placeholder="e.g. NETWORK / POS / PRINTER">
+          </div>
+          <div class="form-group">
+            <label for="defShop">Shop (Col H)</label>
+            <input type="text" id="defShop" placeholder="e.g. CHICKEN INN">
+          </div>
+          <div class="form-group">
+            <label for="defComplex">Complex (Col I)</label>
+            <input type="text" id="defComplex" placeholder="e.g. TV CITY">
+          </div>
+          <div class="form-group">
+            <label for="defCondition">Condition (Col J)</label>
+            <input type="text" id="defCondition" placeholder="e.g. EXCELLENT / NEW">
+          </div>
+          <div class="form-group">
+            <label for="defPurchaseDate">Purchase Date (Col G)</label>
+            <input type="date" id="defPurchaseDate">
+          </div>
+        </div>
+        <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+          <button id="btnClearDefaults" class="btn btn-secondary" style="min-height: 38px; height: 38px; font-size: 0.82rem;">Clear Defaults</button>
+          <button id="btnSaveDefaults" class="btn btn-primary" style="min-height: 38px; height: 38px; font-size: 0.82rem;">Save Defaults</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scanned List Section -->
+    <section>
+      <div class="list-section-header">
+        <div class="list-title">
+          <span>Scanned Items</span>
+          <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: normal;">(Newest first)</span>
+        </div>
+        <input type="text" id="listFilter" class="list-filter-input" placeholder="Filter serials...">
+      </div>
+      <div id="list" class="list-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Sticky Footer Bar -->
+  <footer>
+    <div class="footer-content">
+      <button id="btnExport" class="btn btn-success" title="Download formatted .xlsx template">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Export .xlsx
+      </button>
+      <button id="btnUndo" class="btn btn-secondary" title="Remove the most recently scanned serial">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 7v6h6"></path>
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+        </svg>
+        Undo
+      </button>
+      <button id="btnClear" class="btn btn-secondary" title="Clear all saved scans">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        Clear
+      </button>
+    </div>
+  </footer>
+
+  <!-- Clear Confirmation Modal -->
+  <div class="modal-overlay" id="clearModal">
+    <div class="modal-card">
+      <h3 style="display:flex; align-items:center; gap:8px; color:#F87171;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        Confirm Clear All
+      </h3>
+      <p style="font-size: 0.9rem; color: #D1D5DB;">
+        Are you sure you want to delete all <strong id="modalCount">0</strong> scanned serial numbers? This action cannot be undone. Make sure you have exported your Excel file first.
+      </p>
+      <div class="modal-actions">
+        <button id="btnCancelClear" class="btn btn-secondary">Cancel</button>
+        <button id="btnConfirmClear" class="btn btn-danger">Yes, Delete All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Item Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-card">
+      <h3>Edit Serial Number</h3>
+      <div class="form-group">
+        <label for="editInput">Serial Number</label>
+        <input type="text" id="editInput" class="input-field" style="font-family: var(--font-mono);">
+      </div>
+      <p id="editError" style="font-size: 0.8rem; color: #F87171; display: none;"></p>
+      <div class="modal-actions">
+        <button id="btnCancelEdit" class="btn btn-secondary">Cancel</button>
+        <button id="btnSaveEdit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    /* ==========================================================================
+       1. Constants, Storage Keys & Global State
+       ========================================================================== */
+    const STORAGE_KEY = 'serialScanner.v1';
+    const DEFAULTS_KEY = 'serialScanner.defaults';
+    const SETTINGS_KEY = 'serialScanner.settings';
+
+    // Exact headers from assets_import_template.xlsx (13 columns in order)
+    const HEADERS = [
+      'Asset Name',         // Col A (0)
+      'Asset Tag',          // Col B (1)
+      'Asset Type',         // Col C (2)
+      'Serial Number',      // Col D (3) - Scanned value
+      'Dependency1',        // Col E (4)
+      'Dependency2',        // Col F (5)
+      'Purchase Date',      // Col G (6)
+      'Shop',               // Col H (7)
+      'Complex',            // Col I (8)
+      'Condition',          // Col J (9)
+      'Expected Life Span', // Col K (10)
+      'IP Address',         // Col L (11)
+      'Value'               // Col M (12)
+    ];
+    const SERIAL_COL = 3; // Column D (0-indexed)
+
+    let items = [];
+    let settings = {
+      confirmScan: false,
+      upperCase: true,
+      trimSpaces: true,
+      vibration: true,
+      minLen: 4,
+      sound: true
+    };
+    let batchDefaults = {
+      assetName: '',
+      assetType: '',
+      shop: '',
+      complex: '',
+      condition: '',
+      purchaseDate: ''
+    };
+
+    // Scanner state
+    let scanner = null;
+    let scanning = false;
+    let torchOn = false;
+    let lastCode = '';
+    let lastTime = 0;
+    let candidatePending = null;
+    let editingItemId = null;
+    let audioCtx = null;
+
+    /* ==========================================================================
+       2. Storage & Settings Persistence
+       ========================================================================== */
+    function load() {
+      try {
+        items = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (e) {
+        items = [];
+      }
+
+      try {
+        const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+        if (savedSettings) {
+          settings = { ...settings, ...savedSettings };
+        }
+      } catch (e) {}
+
+      try {
+        const savedDefaults = JSON.parse(localStorage.getItem(DEFAULTS_KEY));
+        if (savedDefaults) {
+          batchDefaults = { ...batchDefaults, ...savedDefaults };
+        }
+      } catch (e) {}
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+
+    function saveDefaultsToStorage() {
+      localStorage.setItem(DEFAULTS_KEY, JSON.stringify(batchDefaults));
+    }
+
+    /* ==========================================================================
+       3. Audio, Haptic & Visual Feedback
+       ========================================================================== */
+    function beep(freq, duration = 120) {
+      if (!settings.sound) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!audioCtx) audioCtx = new AudioContextClass();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration / 1000);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration / 1000);
+      } catch (e) {}
+
+      if (settings.vibration && navigator.vibrate) {
+        try {
+          if (freq >= 600) {
+            navigator.vibrate(80);
+          } else {
+            navigator.vibrate([100, 50, 100]);
+          }
+        } catch (e) {}
+      }
+    }
+
+    function flash(type) {
+      const overlay = document.getElementById('flashOverlay');
+      if (!overlay) return;
+      if (type === 'good') {
+        overlay.style.backgroundColor = 'rgba(16, 185, 129, 0.25)';
+      } else {
+        overlay.style.backgroundColor = 'rgba(239, 68, 68, 0.3)';
+      }
+      overlay.style.opacity = '1';
+      setTimeout(() => {
+        overlay.style.opacity = '0';
+      }, 200);
+    }
+
+    function showBanner(text, type = 'ready', extra = {}) {
+      const banner = document.getElementById('banner');
+      const tagText = document.getElementById('bannerTagText');
+      const bannerVal = document.getElementById('bannerValue');
+      const confirmActions = document.getElementById('bannerConfirmActions');
+
+      banner.className = '';
+      confirmActions.style.display = 'none';
+
+      if (type === 'good') {
+        banner.className = 'banner-good';
+        tagText.textContent = extra.tag || 'Saved Successfully';
+        bannerVal.textContent = text;
+      } else if (type === 'bad') {
+        banner.className = 'banner-bad';
+        tagText.textContent = extra.tag || 'Rejected / Notice';
+        bannerVal.textContent = text;
+      } else if (type === 'confirm') {
+        banner.className = 'banner-confirm';
+        tagText.textContent = 'Confirm Candidate Scan';
+        bannerVal.textContent = text;
+        confirmActions.style.display = 'flex';
+      } else {
+        tagText.textContent = 'Scanner Ready';
+        bannerVal.textContent = text || 'Point camera at barcode or type serial';
+      }
+    }
+
+    /* ==========================================================================
+       4. Core Business Logic (addSerial, delete, edit, undo)
+       ========================================================================== */
+    function addSerial(raw, source = 'manual') {
+      if (raw === null || raw === undefined) {
+        return { ok: false, reason: 'Empty value' };
+      }
+
+      let serial = String(raw).trim();
+      if (settings.trimSpaces) {
+        serial = serial.replace(/\s+/g, '');
+      }
+      if (settings.upperCase) {
+        serial = serial.toUpperCase();
+      }
+
+      if (serial.length < settings.minLen) {
+        return { ok: false, reason: `Too short (min ${settings.minLen} chars)` };
+      }
+
+      // Duplicate check (case-insensitive)
+      const existing = items.find(i => i.serial.toUpperCase() === serial.toUpperCase());
+      if (existing) {
+        return { ok: false, reason: 'Duplicate', serial };
+      }
+
+      const item = {
+        id: Date.now() + '.' + Math.random().toString(36).substr(2, 8),
+        serial,
+        scannedAt: new Date().toISOString(),
+        source
+      };
+
+      items.unshift(item);
+      save();
+      render();
+      return { ok: true, serial };
+    }
+
+    function deleteItem(id) {
+      items = items.filter(i => i.id !== id);
+      save();
+      render();
+      showBanner('Item removed', 'ready');
+    }
+
+    function undoLastScan() {
+      if (!items.length) {
+        showBanner('Nothing to undo', 'bad');
+        beep(220);
+        return;
+      }
+      const removed = items.shift();
+      save();
+      render();
+      showBanner(`Undone: ${removed.serial}`, 'ready');
+      beep(440);
+    }
+
+    function clearAllScans() {
+      items = [];
+      save();
+      render();
+      showBanner('All scans cleared', 'ready');
+    }
+
+    /* ==========================================================================
+       5. Rendering the UI (Counter, List, Filtering)
+       ========================================================================== */
+    function render() {
+      // 1. Counter
+      const countEl = document.getElementById('countDisplay');
+      if (countEl) countEl.textContent = items.length;
+
+      // 2. List
+      const listEl = document.getElementById('list');
+      const filterVal = (document.getElementById('listFilter')?.value || '').trim().toLowerCase();
+
+      listEl.innerHTML = '';
+
+      const filteredItems = filterVal 
+        ? items.filter(i => i.serial.toLowerCase().includes(filterVal))
+        : items;
+
+      if (!filteredItems.length) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'list-empty-state';
+        emptyDiv.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          <p>${items.length === 0 ? 'No serial numbers scanned yet.' : 'No matching serials found.'}</p>
+        `;
+        listEl.appendChild(emptyDiv);
+        return;
+      }
+
+      // Efficient DOM rendering using textContent for all user strings
+      filteredItems.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'scan-item-card';
+
+        const mainDiv = document.createElement('div');
+        mainDiv.className = 'scan-item-main';
+
+        const serialWrap = document.createElement('div');
+        serialWrap.className = 'scan-item-serial-wrap';
+
+        const serialSpan = document.createElement('span');
+        serialSpan.className = 'scan-item-serial';
+        serialSpan.textContent = item.serial; // Protect against odd barcode chars
+        serialWrap.appendChild(serialSpan);
+
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'scan-item-meta';
+
+        const sourceTag = document.createElement('span');
+        sourceTag.className = `source-tag ${item.source}`;
+        sourceTag.textContent = item.source === 'camera' ? 'Camera' : 'Manual';
+
+        const timeSpan = document.createElement('span');
+        const timeObj = new Date(item.scannedAt);
+        timeSpan.textContent = isNaN(timeObj) ? '' : timeObj.toLocaleTimeString();
+
+        metaDiv.appendChild(sourceTag);
+        metaDiv.appendChild(timeSpan);
+
+        mainDiv.appendChild(serialWrap);
+        mainDiv.appendChild(metaDiv);
+
+        // Action Buttons
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'scan-item-actions';
+
+        // Copy button
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'action-btn';
+        copyBtn.title = 'Copy serial';
+        copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+        copyBtn.onclick = (e) => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(item.serial).then(() => {
+            showBanner(`Copied: ${item.serial}`, 'ready');
+            beep(660, 60);
+          }).catch(() => {});
+        };
+
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'action-btn';
+        editBtn.title = 'Edit serial';
+        editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          openEditModal(item);
+        };
+
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'action-btn delete-btn';
+        deleteBtn.title = 'Delete serial';
+        deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteItem(item.id);
+        };
+
+        actionsDiv.appendChild(copyBtn);
+        actionsDiv.appendChild(editBtn);
+        actionsDiv.appendChild(deleteBtn);
+
+        card.appendChild(mainDiv);
+        card.appendChild(actionsDiv);
+        listEl.appendChild(card);
+      });
+    }
+
+    /* ==========================================================================
+       6. Camera Scanning Setup (html5-qrcode 2.3.8)
+       ========================================================================== */
+    function initScanner() {
+      if (typeof Html5Qrcode === 'undefined') {
+        console.warn('Html5Qrcode library not yet loaded');
+        return;
+      }
+      if (!scanner) {
+        scanner = new Html5Qrcode('reader');
+      }
+    }
+
+    async function startScan() {
+      initScanner();
+      if (!scanner) {
+        showBanner('Scanner library not loaded. Check connection.', 'bad');
+        beep(220);
+        return;
+      }
+
+      const config = {
+        fps: 10,
+        qrbox: { width: 300, height: 120 },
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.ITF,
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.DATA_MATRIX
+        ],
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+      };
+
+      try {
+        await scanner.start(
+          { facingMode: 'environment' },
+          config,
+          onScanSuccess,
+          onScanError
+        );
+        scanning = true;
+        document.getElementById('cameraCard').classList.add('camera-active');
+        document.getElementById('cameraIdleView').style.display = 'none';
+        document.getElementById('btnStartText').textContent = 'Stop Camera';
+        document.getElementById('btnStart').classList.replace('btn-primary', 'btn-danger');
+        document.getElementById('btnTorch').disabled = false;
+        showBanner('Camera active. Align barcode in box.', 'ready');
+      } catch (err) {
+        console.error('Camera start error:', err);
+        showBanner('Camera error: ' + err, 'bad');
+        beep(220);
+      }
+    }
+
+    async function stopScan() {
+      if (scanning && scanner) {
+        try {
+          await scanner.stop();
+        } catch (e) {}
+        scanning = false;
+        torchOn = false;
+        document.getElementById('cameraCard').classList.remove('camera-active');
+        document.getElementById('cameraIdleView').style.display = 'flex';
+        document.getElementById('btnStartText').textContent = 'Start Camera';
+        document.getElementById('btnStart').classList.replace('btn-danger', 'btn-primary');
+        const torchBtn = document.getElementById('btnTorch');
+        torchBtn.disabled = true;
+        torchBtn.classList.remove('btn-torch-active');
+        document.getElementById('btnTorchText').textContent = 'Torch';
+      }
+    }
+
+    async function toggleTorch() {
+      if (!scanning || !scanner) return;
+      try {
+        torchOn = !torchOn;
+        await scanner.applyVideoConstraints({
+          advanced: [{ torch: torchOn }]
+        });
+        const torchBtn = document.getElementById('btnTorch');
+        if (torchOn) {
+          torchBtn.classList.add('btn-torch-active');
+          document.getElementById('btnTorchText').textContent = 'Torch ON';
+          beep(600, 60);
+        } else {
+          torchBtn.classList.remove('btn-torch-active');
+          document.getElementById('btnTorchText').textContent = 'Torch';
+          beep(400, 60);
+        }
+      } catch (e) {
+        showBanner('Torch not supported on this device/browser', 'bad');
+        torchOn = false;
+      }
+    }
+
+    function onScanSuccess(text) {
+      const now = Date.now();
+      // 2.5 second debounce on identical barcode
+      if (text === lastCode && (now - lastTime < 2500)) {
+        return;
+      }
+      lastCode = text;
+      lastTime = now;
+      handleCandidate(text);
+    }
+
+    function onScanError(errorMessage) {
+      // Normal per-frame parse misses, ignore to keep console clean
+    }
+
+    function handleCandidate(text) {
+      if (settings.confirmScan) {
+        candidatePending = text;
+        beep(580, 80);
+        showBanner(text, 'confirm');
+      } else {
+        const r = addSerial(text, 'camera');
+        if (r.ok) {
+          beep(880);
+          flash('good');
+          showBanner(r.serial, 'good');
+        } else {
+          beep(220);
+          flash('bad');
+          showBanner(r.reason + (r.serial ? ': ' + r.serial : ''), 'bad');
+        }
+      }
+    }
+
+    /* ==========================================================================
+       7. Export to .xlsx (SheetJS 0.18.5)
+       ========================================================================== */
+    function stamp() {
+      const d = new Date();
+      const p = n => String(n).padStart(2, '0');
+      return (
+        d.getFullYear() +
+        p(d.getMonth() + 1) +
+        p(d.getDate()) +
+        '_' +
+        p(d.getHours()) +
+        p(d.getMinutes())
+      );
+    }
+
+    function exportXlsx() {
+      if (typeof XLSX === 'undefined') {
+        showBanner('SheetJS library not loaded. Check connection.', 'bad');
+        beep(220);
+        return;
+      }
+
+      if (!items.length) {
+        showBanner('Nothing to export. Scan items first.', 'bad');
+        beep(220);
+        return;
+      }
+
+      // Reverse order so row 2 is the very first unit scanned (oldest first)
+      const rows = [...items].reverse().map(i => {
+        const r = HEADERS.map(() => '');
+        // Col D is Serial Number
+        r[SERIAL_COL] = String(i.serial);
+
+        // Batch defaults application if populated
+        if (batchDefaults.assetName) r[0] = String(batchDefaults.assetName);
+        if (batchDefaults.assetType) r[2] = String(batchDefaults.assetType);
+        if (batchDefaults.purchaseDate) r[6] = String(batchDefaults.purchaseDate);
+        if (batchDefaults.shop) r[7] = String(batchDefaults.shop);
+        if (batchDefaults.complex) r[8] = String(batchDefaults.complex);
+        if (batchDefaults.condition) r[9] = String(batchDefaults.condition);
+
+        return r;
+      });
+
+      // aoa_to_sheet with cell-by-cell string enforcement to guarantee leading zeros
+      const wsData = [HEADERS, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+      // Explicitly mark all cells as type 's' (string/text) to preserve leading zeros
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ c: C, r: R });
+          if (ws[cellRef] && ws[cellRef].v !== undefined) {
+            ws[cellRef].t = 's'; // Force string type
+            ws[cellRef].v = String(ws[cellRef].v);
+          }
+        }
+      }
+
+      // Column widths based on header length
+      ws['!cols'] = HEADERS.map(h => ({ wch: Math.max(h.length + 3, 16) }));
+
+      const wb = XLSX.utils.book_new();
+      // Sheet name MUST be exactly 'Assets'
+      XLSX.utils.book_append_sheet(wb, ws, 'Assets');
+
+      const fileName = 'assets_import_' + stamp() + '.xlsx';
+      XLSX.writeFile(wb, fileName);
+
+      beep(880, 180);
+      flash('good');
+      showBanner(`Exported ${items.length} items to ${fileName}`, 'good', { tag: 'Export Complete' });
+    }
+
+    /* ==========================================================================
+       8. Modals, Collapsibles & UI Event Wiring
+       ========================================================================== */
+    function toggleCollapsible(cardId) {
+      const card = document.getElementById(cardId);
+      card.classList.toggle('collapsible-open');
+    }
+
+    function openEditModal(item) {
+      editingItemId = item.id;
+      const input = document.getElementById('editInput');
+      const err = document.getElementById('editError');
+      input.value = item.serial;
+      err.style.display = 'none';
+      document.getElementById('editModal').classList.add('modal-active');
+      input.focus();
+    }
+
+    function closeEditModal() {
+      editingItemId = null;
+      document.getElementById('editModal').classList.remove('modal-active');
+    }
+
+    function saveEditedItem() {
+      if (!editingItemId) return;
+      const input = document.getElementById('editInput');
+      const err = document.getElementById('editError');
+      let val = input.value.trim();
+
+      if (settings.trimSpaces) val = val.replace(/\s+/g, '');
+      if (settings.upperCase) val = val.toUpperCase();
+
+      if (val.length < settings.minLen) {
+        err.textContent = `Serial must be at least ${settings.minLen} characters.`;
+        err.style.display = 'block';
+        return;
+      }
+
+      // Duplicate check against other items
+      const dup = items.find(i => i.id !== editingItemId && i.serial.toUpperCase() === val.toUpperCase());
+      if (dup) {
+        err.textContent = `Serial "${val}" already exists in the list.`;
+        err.style.display = 'block';
+        return;
+      }
+
+      const item = items.find(i => i.id === editingItemId);
+      if (item) {
+        item.serial = val;
+        save();
+        render();
+        showBanner(`Updated to: ${val}`, 'good');
+        beep(880, 80);
+      }
+      closeEditModal();
+    }
+
+    // Initialize DOM events once loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      load();
+
+      // Reflect settings in UI controls
+      document.getElementById('toggleConfirmScan').checked = settings.confirmScan;
+      document.getElementById('toggleUppercase').checked = settings.upperCase;
+      document.getElementById('toggleTrimSpaces').checked = settings.trimSpaces;
+      document.getElementById('toggleVibration').checked = settings.vibration;
+      document.getElementById('inputMinLength').value = settings.minLen;
+
+      // Reflect batch defaults in UI
+      document.getElementById('defAssetName').value = batchDefaults.assetName || '';
+      document.getElementById('defAssetType').value = batchDefaults.assetType || '';
+      document.getElementById('defShop').value = batchDefaults.shop || '';
+      document.getElementById('defComplex').value = batchDefaults.complex || '';
+      document.getElementById('defCondition').value = batchDefaults.condition || '';
+      document.getElementById('defPurchaseDate').value = batchDefaults.purchaseDate || '';
+      updateDefaultsBadge();
+
+      // Sound button state
+      const updateSoundIcon = () => {
+        document.getElementById('soundIconOn').style.display = settings.sound ? 'block' : 'none';
+        document.getElementById('soundIconOff').style.display = settings.sound ? 'none' : 'block';
+      };
+      updateSoundIcon();
+
+      document.getElementById('btnSoundToggle').onclick = () => {
+        settings.sound = !settings.sound;
+        saveSettings();
+        updateSoundIcon();
+        if (settings.sound) beep(880, 80);
+      };
+
+      // Settings toggles
+      document.getElementById('toggleConfirmScan').onchange = (e) => {
+        settings.confirmScan = e.target.checked;
+        saveSettings();
+      };
+      document.getElementById('toggleUppercase').onchange = (e) => {
+        settings.upperCase = e.target.checked;
+        saveSettings();
+      };
+      document.getElementById('toggleTrimSpaces').onchange = (e) => {
+        settings.trimSpaces = e.target.checked;
+        saveSettings();
+      };
+      document.getElementById('toggleVibration').onchange = (e) => {
+        settings.vibration = e.target.checked;
+        saveSettings();
+      };
+      document.getElementById('inputMinLength').onchange = (e) => {
+        const val = parseInt(e.target.value, 10);
+        settings.minLen = isNaN(val) || val < 1 ? 4 : val;
+        e.target.value = settings.minLen;
+        saveSettings();
+      };
+
+      // Batch Defaults Save & Clear
+      function updateDefaultsBadge() {
+        const hasDefaults = Object.values(batchDefaults).some(v => v.trim() !== '');
+        const badge = document.getElementById('defaultsStatusBadge');
+        if (hasDefaults) {
+          badge.textContent = 'Active';
+          badge.style.background = '#065F46';
+          badge.style.color = '#A7F3D0';
+        } else {
+          badge.textContent = 'Optional';
+          badge.style.background = '#1E3A8A';
+          badge.style.color = '#93C5FD';
+        }
+      }
+
+      document.getElementById('btnSaveDefaults').onclick = () => {
+        batchDefaults.assetName = document.getElementById('defAssetName').value.trim();
+        batchDefaults.assetType = document.getElementById('defAssetType').value.trim();
+        batchDefaults.shop = document.getElementById('defShop').value.trim();
+        batchDefaults.complex = document.getElementById('defComplex').value.trim();
+        batchDefaults.condition = document.getElementById('defCondition').value.trim();
+        batchDefaults.purchaseDate = document.getElementById('defPurchaseDate').value;
+        saveDefaultsToStorage();
+        updateDefaultsBadge();
+        showBanner('Batch defaults saved for .xlsx export', 'ready');
+        beep(750, 60);
+      };
+
+      document.getElementById('btnClearDefaults').onclick = () => {
+        batchDefaults = { assetName: '', assetType: '', shop: '', complex: '', condition: '', purchaseDate: '' };
+        document.getElementById('defAssetName').value = '';
+        document.getElementById('defAssetType').value = '';
+        document.getElementById('defShop').value = '';
+        document.getElementById('defComplex').value = '';
+        document.getElementById('defCondition').value = '';
+        document.getElementById('defPurchaseDate').value = '';
+        saveDefaultsToStorage();
+        updateDefaultsBadge();
+        showBanner('Batch defaults cleared', 'ready');
+      };
+
+      // Camera toggle button
+      document.getElementById('btnStart').onclick = () => {
+        if (scanning) {
+          stopScan();
+        } else {
+          startScan();
+        }
+      };
+
+      // Torch toggle
+      document.getElementById('btnTorch').onclick = toggleTorch;
+
+      // Confirm mode actions
+      document.getElementById('btnConfirmSave').onclick = () => {
+        if (!candidatePending) return;
+        const r = addSerial(candidatePending, 'camera');
+        candidatePending = null;
+        if (r.ok) {
+          beep(880);
+          flash('good');
+          showBanner(r.serial, 'good');
+        } else {
+          beep(220);
+          flash('bad');
+          showBanner(r.reason + (r.serial ? ': ' + r.serial : ''), 'bad');
+        }
+      };
+
+      document.getElementById('btnConfirmDiscard').onclick = () => {
+        showBanner(`Discarded candidate: ${candidatePending}`, 'ready');
+        candidatePending = null;
+        beep(330, 80);
+      };
+
+      // Manual entry (Enter key support & retaining focus for barcode guns)
+      const manualInput = document.getElementById('manualInput');
+      const submitManual = () => {
+        const val = manualInput.value;
+        if (!val.trim()) return;
+        const r = addSerial(val, 'manual');
+        if (r.ok) {
+          manualInput.value = '';
+          beep(880);
+          flash('good');
+          showBanner(r.serial, 'good', { tag: 'Manual Added' });
+        } else {
+          beep(220);
+          flash('bad');
+          showBanner(r.reason + (r.serial ? ': ' + r.serial : ''), 'bad');
+        }
+        manualInput.focus();
+      };
+
+      document.getElementById('btnAdd').onclick = submitManual;
+      manualInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitManual();
+        }
+      });
+
+      // Filter input
+      document.getElementById('listFilter').addEventListener('input', render);
+
+      // Sticky Footer actions
+      document.getElementById('btnExport').onclick = exportXlsx;
+      document.getElementById('btnUndo').onclick = undoLastScan;
+      document.getElementById('btnClear').onclick = () => {
+        if (!items.length) {
+          showBanner('No items to clear', 'ready');
+          return;
+        }
+        document.getElementById('modalCount').textContent = items.length;
+        document.getElementById('clearModal').classList.add('modal-active');
+      };
+
+      // Clear modal buttons
+      document.getElementById('btnCancelClear').onclick = () => {
+        document.getElementById('clearModal').classList.remove('modal-active');
+      };
+      document.getElementById('btnConfirmClear').onclick = () => {
+        clearAllScans();
+        document.getElementById('clearModal').classList.remove('modal-active');
+      };
+
+      // Edit modal buttons
+      document.getElementById('btnCancelEdit').onclick = closeEditModal;
+      document.getElementById('btnSaveEdit').onclick = saveEditedItem;
+      document.getElementById('editInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveEditedItem();
+        } else if (e.key === 'Escape') {
+          closeEditModal();
+        }
+      });
+
+      // Global hotkey support (Ctrl+Z / Cmd+Z for undo)
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+          // If not currently typing in a modal or input
+          if (document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault();
+            undoLastScan();
+          }
+        }
+      });
+
+      // Render initial items
+      render();
+
+      // Register PWA Service Worker if available
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.log('SW registration note:', err);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "Serial Scanner - Asset Register PWA",
+  "short_name": "SerialScanner",
+  "description": "Continuous phone barcode scanner for asset register collection and .xlsx export",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0F19",
+  "theme_color": "#0B0F19",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
