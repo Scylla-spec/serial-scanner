@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0B0F19">
-  <meta name="description" content="High-performance phone barcode scanner for asset register collection with multi-location presets, asset tagging, low-light boost, and .xlsx export.">
+  <meta name="description" content="Enterprise phone barcode scanner matching the Asset Register with full Category, Model, Shop, and Site Location dropdowns and .xlsx export.">
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="apple-touch-icon" href="./icon.svg">
-  <title>Serial Scanner Pro | Asset Register PWA</title>
+  <title>Serial Scanner Pro | Enterprise Asset Register</title>
 
   <!-- Local libraries with automatic CDN fallback -->
   <script src="./html5-qrcode.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'"></script>
@@ -76,7 +76,7 @@
     }
 
     .header-content {
-      max-width: 720px;
+      max-width: 740px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -192,7 +192,7 @@
     /* Main Container */
     main {
       width: 100%;
-      max-width: 720px;
+      max-width: 740px;
       margin: 0 auto;
       padding: 12px 14px;
       display: flex;
@@ -201,7 +201,7 @@
       flex: 1;
     }
 
-    /* Active Preset Configuration Card (Upfront Asset & Location Selection) */
+    /* Active Asset Register Batch Card */
     .preset-card {
       background: linear-gradient(145deg, #131D2D, #16243A);
       border: 1px solid #2B3D5B;
@@ -218,6 +218,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .preset-title {
@@ -233,33 +234,38 @@
 
     .preset-status-tag {
       font-size: 0.72rem;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      color: #34D399;
-      padding: 2px 8px;
-      border-radius: 10px;
+      background: rgba(9, 135, 140, 0.2);
+      border: 1px solid rgba(9, 135, 140, 0.45);
+      color: #5EEAD4;
+      padding: 3px 10px;
+      border-radius: 12px;
       font-weight: 600;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .preset-grid {
+    /* 4-Field Responsive Grid matching Asset Register */
+    .register-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
 
-    @media (max-width: 520px) {
-      .preset-grid {
+    @media (max-width: 540px) {
+      .register-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    .preset-field {
+    .register-field {
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
 
-    .preset-field label {
+    .register-field label {
       font-size: 0.74rem;
       font-weight: 700;
       color: #94A3B8;
@@ -267,32 +273,75 @@
       letter-spacing: 0.03em;
       display: flex;
       align-items: center;
-      gap: 4px;
+      justify-content: space-between;
     }
 
-    .preset-input-wrap {
+    .register-field label span.col-code {
+      font-size: 0.68rem;
+      color: #64748B;
+      font-family: var(--font-mono);
+    }
+
+    .register-input-wrap {
       position: relative;
       display: flex;
       align-items: center;
     }
 
-    .preset-field input, .preset-field select {
+    .register-field select, .register-field input {
       width: 100%;
-      height: 40px;
+      height: 42px;
       padding: 0 10px;
       background: #0E1624;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       color: #F8FAFC;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-family: var(--font-sans);
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .preset-field input:focus, .preset-field select:focus {
+    .register-field select:focus, .register-field input:focus {
       border-color: var(--border-focus);
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Secondary collapsible row for condition & date */
+    .extra-register-toggle {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #93C5FD;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 0;
+      user-select: none;
+    }
+
+    .extra-register-toggle:hover {
+      text-decoration: underline;
+    }
+
+    .extra-register-fields {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    }
+
+    .extra-register-fields.open {
+      display: grid;
+    }
+
+    @media (max-width: 540px) {
+      .extra-register-fields.open {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* Fast 1-Tap Chips */
@@ -301,7 +350,7 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 6px;
-      padding-top: 4px;
+      padding-top: 6px;
       border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
 
@@ -427,7 +476,7 @@
     }
 
     .hud-badge {
-      background: rgba(11, 15, 25, 0.85);
+      background: rgba(11, 15, 25, 0.88);
       border: 1px solid rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
@@ -606,7 +655,6 @@
       background: #059669;
     }
 
-    /* Active Toggle States for Camera Tools */
     .btn-torch-active {
       background: #B45309 !important;
       border-color: #F59E0B !important;
@@ -755,128 +803,6 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
     }
 
-    /* Collapsible Sections */
-    .collapsible-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-
-    .collapsible-header {
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
-      background: var(--surface);
-      transition: background 0.15s;
-    }
-
-    .collapsible-header:hover {
-      background: var(--surface-card);
-    }
-
-    .collapsible-title {
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: #E5E7EB;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .collapsible-chevron {
-      transition: transform 0.2s ease;
-      stroke: var(--text-muted);
-    }
-
-    .collapsible-open .collapsible-chevron {
-      transform: rotate(180deg);
-    }
-
-    .collapsible-content {
-      display: none;
-      padding: 14px 16px;
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-    }
-
-    .collapsible-open .collapsible-content {
-      display: block;
-    }
-
-    /* Settings Controls */
-    .settings-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      min-height: 38px;
-    }
-
-    .toggle-label {
-      font-size: 0.88rem;
-      color: #D1D5DB;
-    }
-
-    .toggle-label span {
-      display: block;
-      font-size: 0.72rem;
-      color: var(--text-dim);
-    }
-
-    /* Switch Component */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 48px;
-      height: 28px;
-      flex-shrink: 0;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      inset: 0;
-      background-color: #374151;
-      transition: 0.25s;
-      border-radius: 28px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 20px;
-      width: 20px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: 0.25s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: #2563EB;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-
     /* Scanned List Section */
     .list-section-header {
       display: flex;
@@ -930,7 +856,7 @@
       opacity: 0.5;
     }
 
-    /* Scanned Item Card */
+    /* Scanned Item Card with Asset Register Badges */
     .scan-item-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -980,19 +906,34 @@
     }
 
     .scan-item-pill {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 600;
       padding: 2px 7px;
       border-radius: 6px;
       background: rgba(37, 99, 235, 0.15);
       border: 1px solid rgba(37, 99, 235, 0.3);
       color: #93C5FD;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
     }
 
-    .scan-item-pill.pill-loc {
+    .scan-item-pill.pill-shop {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #FCD34D;
+    }
+
+    .scan-item-pill.pill-complex {
       background: rgba(9, 135, 140, 0.15);
       border-color: rgba(9, 135, 140, 0.35);
       color: #5EEAD4;
+    }
+
+    .scan-item-pill.pill-cond {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #6EE7B7;
     }
 
     .scan-item-actions {
@@ -1049,7 +990,7 @@
     }
 
     .footer-content {
-      max-width: 720px;
+      max-width: 740px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: 2fr 1fr 1fr;
@@ -1089,7 +1030,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       width: 100%;
-      max-width: 460px;
+      max-width: 480px;
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -1103,9 +1044,15 @@
     }
 
     .modal-form-grid {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .modal-form-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .modal-actions {
@@ -1141,8 +1088,8 @@
           </svg>
         </div>
         <div class="brand-text">
-          <h1>Serial Scanner <span class="brand-badge">PRO v2</span></h1>
-          <span>Assets Management Companion</span>
+          <h1>Serial Scanner <span class="brand-badge">ENTERPRISE</span></h1>
+          <span>Asset Register Import Companion</span>
         </div>
       </div>
       <div class="header-actions">
@@ -1165,117 +1112,181 @@
   </header>
 
   <main>
-    <!-- Upfront Asset & Location Preset Card -->
+    <!-- Asset Register Active Batch Card (4 Core Dropdowns matching the Register) -->
     <section class="preset-card">
       <div class="preset-card-header">
         <div class="preset-title">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
           </svg>
-          Active Scanning Batch
+          Asset Register Batch Preset
         </div>
-        <div class="preset-status-tag" id="activeBatchSummary">Head Office • Epson Printer</div>
+        <div class="preset-status-tag" id="activeBatchSummary">PRINTER • Epson printer • Head Office • TV City</div>
       </div>
 
-      <div class="preset-grid">
-        <!-- Location Picker -->
-        <div class="preset-field">
-          <label for="selectLocation">
-            <span>📍 Company Location / Branch</span>
+      <div class="register-grid">
+        <!-- 1. Asset Category (Col C - Asset Type) -->
+        <div class="register-field">
+          <label for="selectCategory">
+            <span>🏷️ Asset Category (Type)</span>
+            <span class="col-code">Col C</span>
           </label>
-          <div class="preset-input-wrap">
-            <select id="selectLocation">
-              <optgroup label="🏢 Corporate & Main Sites">
+          <div class="register-input-wrap">
+            <select id="selectCategory">
+              <option value="PRINTER / COPIER / SCANNER" selected>🖨️ PRINTER / COPIER / SCANNER</option>
+              <option value="DESKTOP PC / WORKSTATION">🖥️ DESKTOP PC / WORKSTATION</option>
+              <option value="LAPTOP / NOTEBOOK">💻 LAPTOP / NOTEBOOK</option>
+              <option value="MONITOR / DISPLAY">📺 MONITOR / DISPLAY</option>
+              <option value="POS TERMINAL / TILL SYSTEM">🧾 POS TERMINAL / TILL SYSTEM</option>
+              <option value="RECEIPT PRINTER / THERMAL">🧾 RECEIPT PRINTER / THERMAL</option>
+              <option value="BARCODE SCANNER / GUN">🔫 BARCODE SCANNER / GUN</option>
+              <option value="NETWORK SWITCH / ROUTER">🖧 NETWORK SWITCH / ROUTER</option>
+              <option value="UPS / POWER BACKUP / INVERTER">🔌 UPS / POWER BACKUP</option>
+              <option value="SERVER / STORAGE">🗄️ SERVER / STORAGE</option>
+              <option value="CCTV / SECURITY">📹 CCTV / SECURITY</option>
+              <option value="TELEPHONY / VOIP">📞 TELEPHONY / VOIP</option>
+              <option value="PERIPHERALS / ACCESORIES">⌨️ PERIPHERALS / ACCESORIES</option>
+              <option value="OTHER IT ASSET">📦 OTHER IT ASSET</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. Asset Name & Model (Col A - Asset Name) -->
+        <div class="register-field">
+          <label for="selectAssetName">
+            <span>📦 Asset Name & Model</span>
+            <span class="col-code">Col A</span>
+          </label>
+          <div class="register-input-wrap">
+            <select id="selectAssetName">
+              <!-- Dynamically populated based on selected category -->
+            </select>
+          </div>
+        </div>
+
+        <!-- 3. Shop (Col H - Shop) -->
+        <div class="register-field">
+          <label for="selectShop">
+            <span>🏪 Shop / Store / Dept</span>
+            <span class="col-code">Col H</span>
+          </label>
+          <div class="register-input-wrap">
+            <select id="selectShop">
+              <optgroup label="🏢 Corporate & Internal">
                 <option value="Head Office" selected>🏢 Head Office</option>
-                <option value="IT Workshop / Lab">🔧 IT Workshop / Repair Lab</option>
-                <option value="Server Room / Data Centre">🖧 Server Room / Data Centre</option>
-                <option value="Msasa Central Warehouse">📦 Msasa Central Warehouse</option>
+                <option value="IT Workshop / Stores">🔧 IT Workshop / Stores</option>
+                <option value="Central Kitchen / Production">🍲 Central Kitchen / Production</option>
+                <option value="Finance & Accounts">💼 Finance & Accounts</option>
+                <option value="Human Resources">👥 Human Resources</option>
+                <option value="Warehouse / Logistics">📦 Warehouse / Logistics</option>
               </optgroup>
-              <optgroup label="🌍 Northern Region (Harare & Mashonaland)">
-                <option value="Harare Main Branch">Harare - Main Branch</option>
-                <option value="Harare Graniteside Depot">Harare - Graniteside Depot</option>
-                <option value="Harare Southerton">Harare - Southerton Depot</option>
-                <option value="Harare Avondale">Harare - Avondale</option>
-                <option value="Harare Borrowdale">Harare - Borrowdale</option>
-                <option value="Harare Westgate">Harare - Westgate</option>
-                <option value="Chitungwiza Branch">Chitungwiza Branch</option>
-                <option value="Mutare Main Branch">Mutare Main Branch</option>
-                <option value="Mutare Depot">Mutare Depot</option>
-                <option value="Bindura Branch">Bindura Branch</option>
-                <option value="Marondera Branch">Marondera Branch</option>
-                <option value="Chinhoyi Branch">Chinhoyi Branch</option>
+              <optgroup label="🍔 Retail Shops & Brands">
+                <option value="Chicken Inn">Chicken Inn</option>
+                <option value="Pizza Inn">Pizza Inn</option>
+                <option value="Bakers Inn">Bakers Inn</option>
+                <option value="Creamy Inn">Creamy Inn</option>
+                <option value="Galito's">Galito's</option>
+                <option value="Steers">Steers</option>
+                <option value="Nando's">Nando's</option>
+                <option value="Haefelis">Haefelis</option>
+                <option value="Dial-a-Delivery">Dial-a-Delivery</option>
+                <option value="RocoMamas">RocoMamas</option>
               </optgroup>
-              <optgroup label="🌍 Southern Region (Bulawayo & Midlands)">
-                <option value="Bulawayo Main Branch">Bulawayo - Main Branch</option>
-                <option value="Bulawayo Belmont Depot">Bulawayo - Belmont Depot</option>
-                <option value="Bulawayo Kelvin Industrial">Bulawayo - Kelvin Industrial</option>
-                <option value="Gweru Main Branch">Gweru - Main Branch</option>
-                <option value="Gweru Depot">Gweru - Depot</option>
-                <option value="Kwekwe Branch">Kwekwe Branch</option>
-                <option value="Masvingo Branch">Masvingo Branch</option>
-                <option value="Victoria Falls Branch">Victoria Falls Branch</option>
-                <option value="Zvishavane Branch">Zvishavane Branch</option>
-              </optgroup>
-              <optgroup label="➕ Custom Location" id="customLocationOptGroup">
-                <option value="__NEW__">+ Add Custom Location...</option>
+              <optgroup label="➕ Custom Shop" id="customShopOptGroup">
+                <option value="__NEW_SHOP__">+ Add Custom Shop...</option>
               </optgroup>
             </select>
           </div>
         </div>
 
-        <!-- Asset Name Picker / Input -->
-        <div class="preset-field">
-          <label for="inputAssetName">
-            <span>📦 Asset Name & Model</span>
+        <!-- 4. Site Location / Complex (Col I - Complex) -->
+        <div class="register-field">
+          <label for="selectComplex">
+            <span>🏢 Site Location / Complex</span>
+            <span class="col-code">Col I</span>
           </label>
-          <div class="preset-input-wrap">
-            <input 
-              type="text" 
-              id="inputAssetName" 
-              list="assetNameList" 
-              value="Epson printer" 
-              placeholder="e.g. Epson printer, Desktop PC..." 
-              autocomplete="off"
-            >
-            <datalist id="assetNameList">
-              <!-- Printers -->
-              <option value="Epson printer">
-              <option value="Epson EcoTank L3250">
-              <option value="Epson WorkForce Pro">
-              <option value="HP LaserJet Pro">
-              <option value="Canon Multifunction Printer">
-              <!-- Computers -->
-              <option value="Desktop PC">
-              <option value="Dell OptiPlex Desktop">
-              <option value="HP EliteDesk PC">
-              <option value="Lenovo ThinkCentre PC">
-              <option value="Laptop (Dell Latitude)">
-              <option value="Laptop (HP ProBook)">
-              <option value="Laptop (Lenovo ThinkPad)">
-              <!-- Displays & Networking -->
-              <option value="Dell 24-inch Monitor">
-              <option value="HP 24-inch Monitor">
-              <option value="Cisco Catalyst Switch">
-              <option value="MikroTik Router">
-              <option value="APC Smart-UPS 1500VA">
-              <option value="Mecer 2000VA UPS">
-              <option value="Barcode Scanner Gun">
-            </datalist>
+          <div class="register-input-wrap">
+            <select id="selectComplex">
+              <optgroup label="🏢 Corporate Hubs & Complexes">
+                <option value="TV City Complex" selected>🏢 TV City Complex</option>
+                <option value="Head Office Complex">🏢 Head Office Complex</option>
+                <option value="Joina City (Harare CBD)">🏢 Joina City (Harare CBD)</option>
+                <option value="Sam Levy's Village (Borrowdale)">🏢 Sam Levy's Village (Borrowdale)</option>
+                <option value="Msasa Central Depot / Complex">📦 Msasa Central Depot / Complex</option>
+                <option value="Graniteside Industrial Complex">🏭 Graniteside Industrial Complex</option>
+                <option value="Southerton Industrial">🏭 Southerton Industrial</option>
+              </optgroup>
+              <optgroup label="🌍 Northern Region Complexes">
+                <option value="Speke Avenue Complex">Speke Avenue Complex</option>
+                <option value="First Street Mall">First Street Mall</option>
+                <option value="Avondale Shopping Centre">Avondale Shopping Centre</option>
+                <option value="Westgate Shopping Mall">Westgate Shopping Mall</option>
+                <option value="Chitungwiza Town Centre">Chitungwiza Town Centre</option>
+                <option value="Mutare Main Complex">Mutare Main Complex</option>
+                <option value="Bindura Complex">Bindura Complex</option>
+                <option value="Marondera Complex">Marondera Complex</option>
+                <option value="Chinhoyi Complex">Chinhoyi Complex</option>
+              </optgroup>
+              <optgroup label="🌍 Southern Region Complexes">
+                <option value="Belmont Complex (Bulawayo)">Belmont Complex (Bulawayo)</option>
+                <option value="Bulawayo CBD Main Complex">Bulawayo CBD Main Complex</option>
+                <option value="Kelvin Industrial (Bulawayo)">Kelvin Industrial (Bulawayo)</option>
+                <option value="Gweru Central Complex">Gweru Central Complex</option>
+                <option value="Kwekwe Complex">Kwekwe Complex</option>
+                <option value="Masvingo Downtown Complex">Masvingo Downtown Complex</option>
+                <option value="Victoria Falls Complex">Victoria Falls Complex</option>
+                <option value="Zvishavane Complex">Zvishavane Complex</option>
+              </optgroup>
+              <optgroup label="➕ Custom Location" id="customComplexOptGroup">
+                <option value="__NEW_COMPLEX__">+ Add Custom Site / Complex...</option>
+              </optgroup>
+            </select>
           </div>
         </div>
       </div>
 
-      <!-- Quick 1-Tap Preset Chips -->
+      <!-- Secondary details toggle (Condition & Audit Date) -->
+      <div>
+        <button type="button" class="extra-register-toggle" id="btnToggleExtraFields">
+          <span>⚙️ Additional Register Fields (Condition, Audit Date)</span>
+          <span id="extraFieldsChevron">▾</span>
+        </button>
+        <div class="extra-register-fields" id="extraRegisterFields">
+          <div class="register-field">
+            <label for="selectCondition">
+              <span>⭐ Condition</span>
+              <span class="col-code">Col J</span>
+            </label>
+            <select id="selectCondition">
+              <option value="Good" selected>Good / Operational</option>
+              <option value="New">New / Unopened</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Fair">Fair / Functional</option>
+              <option value="Poor">Poor / Needs Maintenance</option>
+              <option value="Faulty">Faulty / For Repair</option>
+            </select>
+          </div>
+          <div class="register-field">
+            <label for="inputPurchaseDate">
+              <span>📅 Purchase / Audit Date</span>
+              <span class="col-code">Col G</span>
+            </label>
+            <input type="date" id="inputPurchaseDate">
+          </div>
+        </div>
+      </div>
+
+      <!-- 1-Tap Quick Batch Presets -->
       <div class="quick-chips-wrap">
         <span class="quick-chips-label">Quick:</span>
-        <button class="chip-btn chip-active" onclick="setPresetAsset('Epson printer', 'Printer / Copier')">🖨️ Epson Printer</button>
-        <button class="chip-btn" onclick="setPresetAsset('Desktop PC', 'Desktop PC / Computer')">🖥️ Desktop PC</button>
-        <button class="chip-btn" onclick="setPresetAsset('HP LaserJet', 'Printer / Copier')">🖨️ HP LaserJet</button>
-        <button class="chip-btn" onclick="setPresetAsset('Laptop', 'Laptop / Notebook')">💻 Laptop</button>
-        <button class="chip-btn" onclick="setPresetAsset('Monitor', 'Monitor / Display')">🖥️ Monitor</button>
-        <button class="chip-btn" onclick="setPresetAsset('APC UPS', 'Power / UPS')">🔌 UPS</button>
-        <button class="chip-btn" onclick="setPresetAsset('Cisco Switch', 'Networking')">🖧 Switch</button>
+        <button class="chip-btn chip-active" onclick="quickBatchApply('PRINTER / COPIER / SCANNER', 'Epson printer', 'Head Office', 'TV City Complex')">🖨️ Epson (Head Office)</button>
+        <button class="chip-btn" onclick="quickBatchApply('DESKTOP PC / WORKSTATION', 'Dell OptiPlex PC', 'Head Office', 'TV City Complex')">🖥️ Desktop PC (TV City)</button>
+        <button class="chip-btn" onclick="quickBatchApply('POS TERMINAL / TILL SYSTEM', 'POS Touchscreen Terminal', 'Chicken Inn', 'Joina City (Harare CBD)')">🧾 Till (Chicken Inn)</button>
+        <button class="chip-btn" onclick="quickBatchApply('RECEIPT PRINTER / THERMAL', 'Epson TM-T20 Thermal Printer', 'Pizza Inn', 'Speke Avenue Complex')">🧾 Thermal (Pizza Inn)</button>
+        <button class="chip-btn" onclick="quickBatchApply('LAPTOP / NOTEBOOK', 'HP ProBook Laptop', 'IT Workshop / Stores', 'Msasa Central Depot / Complex')">💻 Laptop (Msasa)</button>
+        <button class="chip-btn" onclick="quickBatchApply('NETWORK SWITCH / ROUTER', 'Cisco 24-Port Gigabit Switch', 'IT Workshop / Stores', 'TV City Complex')">🖧 Cisco (Server Room)</button>
       </div>
     </section>
 
@@ -1292,7 +1303,7 @@
             <span id="hudEngineText">Ready</span>
           </div>
           <div class="hud-badge" id="hudTargetBadge">
-            📍 <span id="hudTargetText">Head Office</span>
+            📍 <span id="hudTargetText">Head Office • TV City</span>
           </div>
         </div>
 
@@ -1368,7 +1379,8 @@
           </div>
           <div class="banner-tags-row" id="bannerTagsRow">
             <span class="banner-pill" id="bannerAssetTag">Epson printer</span>
-            <span class="banner-pill" id="bannerLocTag">Head Office</span>
+            <span class="banner-pill" id="bannerShopTag">Head Office</span>
+            <span class="banner-pill" id="bannerComplexTag">TV City</span>
           </div>
         </div>
         <div class="banner-value" id="bannerValue">Point camera at serial barcode label</div>
@@ -1405,83 +1417,11 @@
       </form>
     </section>
 
-    <!-- Collapsible Settings Panel -->
-    <section class="collapsible-card" id="cardSettings">
-      <div class="collapsible-header" onclick="toggleCollapsible('cardSettings')">
-        <div class="collapsible-title">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-          Scanner & Validation Settings
-        </div>
-        <svg class="collapsible-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-      </div>
-      <div class="collapsible-content">
-        <div class="settings-grid">
-          <div class="toggle-row">
-            <div class="toggle-label">
-              Hardware Barcode Acceleration
-              <span>Uses device ML BarcodeDetector for instant low-light reads</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="toggleHardwareAccel" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-label">
-              Confirm each scan mode
-              <span>Pauses for confirmation before saving candidate barcode</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="toggleConfirmScan">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-label">
-              Force Uppercase
-              <span>Automatically converts serial letters to uppercase</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="toggleUppercase" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-label">
-              Strip Whitespace
-              <span>Removes spaces and control characters from barcodes</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="toggleTrimSpaces" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-label">
-              Vibration Haptics
-              <span>Vibrate device on scan and duplicate events</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="toggleVibration" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="preset-field" style="margin-top: 4px;">
-            <label for="inputMinLength">Minimum Serial Length (Filters Junk/Noise)</label>
-            <input type="number" id="inputMinLength" value="4" min="1" max="50">
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Scanned List Section -->
     <section>
       <div class="list-section-header">
         <div class="list-title">
-          <span>Scanned Asset Items</span>
+          <span>Scanned Asset Register Items</span>
           <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: normal;">(Newest first)</span>
         </div>
         <input type="text" id="listFilter" class="list-filter-input" placeholder="Filter serials...">
@@ -1537,42 +1477,54 @@
     </div>
   </div>
 
-  <!-- Custom Location Modal -->
-  <div class="modal-overlay" id="customLocationModal">
+  <!-- Custom Entry Modal (Shop, Complex, or Model) -->
+  <div class="modal-overlay" id="customEntryModal">
     <div class="modal-card">
-      <h3 style="display:flex; align-items:center; gap:8px;">
-        <span>📍 Add Custom Location</span>
-      </h3>
-      <p style="font-size: 0.85rem; color: #94A3B8;">
-        Enter a new branch, office, or depot name. It will be saved into your company locations list.
-      </p>
-      <div class="preset-field">
-        <label for="newLocationInput">Location Name</label>
-        <input type="text" id="newLocationInput" placeholder="e.g. Masvingo Depot, Head Office 2nd Floor">
+      <h3 id="customModalTitle">Add Custom Value</h3>
+      <p id="customModalDesc" style="font-size: 0.85rem; color: #94A3B8;">Enter a new value to save into the dropdown.</p>
+      <div class="register-field">
+        <label id="customModalLabel" for="customModalInput">Value</label>
+        <input type="text" id="customModalInput">
       </div>
       <div class="modal-actions">
-        <button id="btnCancelCustomLocation" class="btn btn-secondary">Cancel</button>
-        <button id="btnSaveCustomLocation" class="btn btn-primary">Save Location</button>
+        <button id="btnCancelCustomEntry" class="btn btn-secondary">Cancel</button>
+        <button id="btnSaveCustomEntry" class="btn btn-primary">Save Value</button>
       </div>
     </div>
   </div>
 
-  <!-- Edit Item Modal -->
+  <!-- Full Edit Scanned Item Modal (All 6 Asset Register Fields) -->
   <div class="modal-overlay" id="editModal">
     <div class="modal-card">
-      <h3>Edit Scanned Asset</h3>
+      <h3>Edit Scanned Asset Details</h3>
       <div class="modal-form-grid">
-        <div class="preset-field">
-          <label for="editSerialInput">Serial Number</label>
+        <div class="register-field" style="grid-column: 1 / -1;">
+          <label for="editSerialInput">Serial Number (Col D)</label>
           <input type="text" id="editSerialInput" style="font-family: var(--font-mono);">
         </div>
-        <div class="preset-field">
-          <label for="editAssetNameInput">Asset Name</label>
+        <div class="register-field">
+          <label for="editCategoryInput">Asset Category (Col C)</label>
+          <input type="text" id="editCategoryInput">
+        </div>
+        <div class="register-field">
+          <label for="editAssetNameInput">Asset Name & Model (Col A)</label>
           <input type="text" id="editAssetNameInput">
         </div>
-        <div class="preset-field">
-          <label for="editLocationInput">Location</label>
-          <input type="text" id="editLocationInput">
+        <div class="register-field">
+          <label for="editShopInput">Shop (Col H)</label>
+          <input type="text" id="editShopInput">
+        </div>
+        <div class="register-field">
+          <label for="editComplexInput">Complex / Site (Col I)</label>
+          <input type="text" id="editComplexInput">
+        </div>
+        <div class="register-field">
+          <label for="editConditionInput">Condition (Col J)</label>
+          <input type="text" id="editConditionInput">
+        </div>
+        <div class="register-field">
+          <label for="editDateInput">Date (Col G)</label>
+          <input type="date" id="editDateInput">
         </div>
       </div>
       <p id="editError" style="font-size: 0.8rem; color: #F87171; display: none;"></p>
@@ -1586,38 +1538,154 @@
   <!-- JavaScript Logic -->
   <script>
     /* ==========================================================================
-       1. Constants, Storage Keys & Global State
+       1. Constants & Full Asset Register Catalog
        ========================================================================== */
     const STORAGE_KEY = 'serialScanner.v2';
-    const CUSTOM_LOCATIONS_KEY = 'serialScanner.customLocations';
     const SETTINGS_KEY = 'serialScanner.settings';
-    const ACTIVE_BATCH_KEY = 'serialScanner.activeBatch';
+    const ACTIVE_BATCH_KEY = 'serialScanner.activeBatch.v3';
+    const CUSTOM_SHOPS_KEY = 'serialScanner.customShops';
+    const CUSTOM_COMPLEXES_KEY = 'serialScanner.customComplexes';
+    const CUSTOM_MODELS_KEY = 'serialScanner.customModels';
 
     // Exact headers from assets_import_template.xlsx (13 columns in order)
     const HEADERS = [
       'Asset Name',         // Col A (0)
       'Asset Tag',          // Col B (1)
-      'Asset Type',         // Col C (2)
-      'Serial Number',      // Col D (3) - Scanned value
+      'Asset Type',         // Col C (2) - Asset Category
+      'Serial Number',      // Col D (3) - Scanned barcode value
       'Dependency1',        // Col E (4)
       'Dependency2',        // Col F (5)
       'Purchase Date',      // Col G (6)
-      'Shop',               // Col H (7) - Company Location
-      'Complex',            // Col I (8) - Region / Complex
-      'Condition',          // Col J (9)
+      'Shop',               // Col H (7) - Shop (e.g. Chicken Inn / Head Office)
+      'Complex',            // Col I (8) - Complex / Site Location (e.g. TV City)
+      'Condition',          // Col J (9) - Condition (Good, New, etc.)
       'Expected Life Span', // Col K (10)
       'IP Address',         // Col L (11)
       'Value'               // Col M (12)
     ];
     const SERIAL_COL = 3;
 
+    // Comprehensive Models Dictionary mapped by Asset Category
+    const CATEGORIES_MAP = {
+      'PRINTER / COPIER / SCANNER': [
+        'Epson printer',
+        'Epson EcoTank L3250 Multifunction',
+        'Epson EcoTank L3150 Wi-Fi',
+        'Epson WorkForce Pro WF-C5790',
+        'HP LaserJet Pro MFP M428fdw',
+        'HP LaserJet Enterprise M404n',
+        'HP LaserJet P2035 Printer',
+        'Canon imageRUNNER 2520 Copier',
+        'Canon PIXMA G3411 MegaTank',
+        'Kyocera ECOSYS M2040dn',
+        'Brother HL-L2320D Laser Printer'
+      ],
+      'DESKTOP PC / WORKSTATION': [
+        'Desktop PC',
+        'Dell OptiPlex 7090 Tower',
+        'Dell OptiPlex 3080 Micro / SFF',
+        'HP EliteDesk 800 G6 Tower',
+        'HP ProDesk 400 G7 SFF',
+        'Lenovo ThinkCentre M70s',
+        'Lenovo ThinkCentre M720 Tiny',
+        'Custom Built IT Workstation'
+      ],
+      'LAPTOP / NOTEBOOK': [
+        'Laptop (General)',
+        'Dell Latitude 3520 / 5420',
+        'Dell Vostro 3510 Laptop',
+        'HP ProBook 450 G8 / G9',
+        'HP EliteBook 840 G7 / G8',
+        'Lenovo ThinkPad E14 / T14',
+        'Lenovo IdeaPad 3 Core i5'
+      ],
+      'MONITOR / DISPLAY': [
+        'Dell 24-inch P2419H / P2422H',
+        'Dell 22-inch E2216H Monitor',
+        'HP 24-inch E243 FHD Monitor',
+        'HP 22-inch V22 FHD Monitor',
+        'Samsung 24-inch Essential Flat',
+        'LG 24-inch IPS LED Monitor',
+        'AOC 22-inch LED Display'
+      ],
+      'POS TERMINAL / TILL SYSTEM': [
+        'POS Touchscreen Terminal',
+        'Advantech All-in-One Touch Till',
+        'Hisense All-in-One POS System',
+        'Flytech POS Hardware Terminal',
+        'NCR RealPOS All-in-One Till'
+      ],
+      'RECEIPT PRINTER / THERMAL': [
+        'Epson TM-T20 Thermal Receipt Printer',
+        'Epson TM-T88 Thermal POS Printer',
+        'Bixolon SRP-330II Thermal Printer',
+        'Xprinter XP-N160I USB Thermal'
+      ],
+      'BARCODE SCANNER / GUN': [
+        'Zebra DS2208 Handheld 2D Scanner',
+        'Honeywell Voyager 1400g 2D Gun',
+        'Datalogic QuickScan QW2100 1D',
+        'Wireless Bluetooth 2D Scanner Gun'
+      ],
+      'NETWORK SWITCH / ROUTER': [
+        'Cisco Catalyst 2960 24-Port Switch',
+        'Cisco Catalyst 9200 Gigabit Switch',
+        'MikroTik Cloud Router Switch (CRS)',
+        'Ubiquiti UniFi 24-Port PoE Switch',
+        'Ubiquiti UniFi U6-Pro Access Point',
+        'TP-Link 24-Port Gigabit Switch'
+      ],
+      'UPS / POWER BACKUP / INVERTER': [
+        'APC Smart-UPS 1500VA LCD',
+        'APC Back-UPS 1100VA / 650VA',
+        'Mecer 2000VA On-Line Tower UPS',
+        'Mustek 1000VA Offline UPS',
+        'Solar Hybrid Inverter 5kVA'
+      ],
+      'SERVER / STORAGE': [
+        'Dell PowerEdge R740 Rack Server',
+        'Dell PowerEdge R640 Server',
+        'HP ProLiant DL380 Gen10 Server',
+        'Synology DiskStation NAS Storage'
+      ],
+      'CCTV / SECURITY': [
+        'Hikvision 16-Channel NVR',
+        'Hikvision IP Dome Camera 4MP',
+        'Dahua 32-Channel NVR System',
+        'Biometric Fingerprint Door Access'
+      ],
+      'TELEPHONY / VOIP': [
+        'Yealink SIP-T21P E2 VoIP Phone',
+        'Yealink SIP-T46S Executive Phone',
+        'Grandstream GXP1625 IP Phone',
+        'Grandstream IP PBX Appliance'
+      ],
+      'PERIPHERALS / ACCESORIES': [
+        'Logitech Keyboard & Mouse Combo',
+        'HP USB Standard Keyboard & Mouse',
+        'Dell Pro Wireless Keyboard Combo',
+        'External USB Backup Hard Drive'
+      ],
+      'OTHER IT ASSET': [
+        'IT Asset (General)',
+        'Cash Drawer (POS)',
+        'Server Rack 42U Cabinet',
+        'Power Distribution Unit (PDU)'
+      ]
+    };
+
     let items = [];
-    let customLocations = [];
+    let customShops = [];
+    let customComplexes = [];
+    let customModels = {};
+
     let activeBatch = {
-      location: 'Head Office',
+      category: 'PRINTER / COPIER / SCANNER',
       assetName: 'Epson printer',
-      assetType: 'Printer / Copier',
-      condition: 'Good'
+      shop: 'Head Office',
+      complex: 'TV City Complex',
+      condition: 'Good',
+      purchaseDate: new Date().toISOString().split('T')[0]
     };
 
     let settings = {
@@ -1643,6 +1711,7 @@
     let audioCtx = null;
     let nativeDetector = null;
     let nativeAnimFrameId = null;
+    let pendingCustomType = null;
 
     /* ==========================================================================
        2. Storage & Persistence
@@ -1654,40 +1723,29 @@
         items = [];
       }
 
-      // If migrating from v1
-      if (!items.length) {
-        try {
-          const v1Items = JSON.parse(localStorage.getItem('serialScanner.v1'));
-          if (Array.isArray(v1Items) && v1Items.length) {
-            items = v1Items.map(i => ({
-              ...i,
-              assetName: i.assetName || 'IT Asset',
-              location: i.location || 'Head Office',
-              assetType: i.assetType || 'Equipment'
-            }));
-          }
-        } catch (e) {}
-      }
+      try {
+        const savedShops = JSON.parse(localStorage.getItem(CUSTOM_SHOPS_KEY));
+        if (Array.isArray(savedShops)) customShops = savedShops;
+      } catch (e) {}
 
       try {
-        const savedCustomLocs = JSON.parse(localStorage.getItem(CUSTOM_LOCATIONS_KEY));
-        if (Array.isArray(savedCustomLocs)) {
-          customLocations = savedCustomLocs;
-        }
+        const savedComplexes = JSON.parse(localStorage.getItem(CUSTOM_COMPLEXES_KEY));
+        if (Array.isArray(savedComplexes)) customComplexes = savedComplexes;
+      } catch (e) {}
+
+      try {
+        const savedModels = JSON.parse(localStorage.getItem(CUSTOM_MODELS_KEY));
+        if (savedModels && typeof savedModels === 'object') customModels = savedModels;
       } catch (e) {}
 
       try {
         const savedBatch = JSON.parse(localStorage.getItem(ACTIVE_BATCH_KEY));
-        if (savedBatch) {
-          activeBatch = { ...activeBatch, ...savedBatch };
-        }
+        if (savedBatch) activeBatch = { ...activeBatch, ...savedBatch };
       } catch (e) {}
 
       try {
         const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (savedSettings) {
-          settings = { ...settings, ...savedSettings };
-        }
+        if (savedSettings) settings = { ...settings, ...savedSettings };
       } catch (e) {}
     }
 
@@ -1699,8 +1757,16 @@
       localStorage.setItem(ACTIVE_BATCH_KEY, JSON.stringify(activeBatch));
     }
 
-    function saveCustomLocations() {
-      localStorage.setItem(CUSTOM_LOCATIONS_KEY, JSON.stringify(customLocations));
+    function saveCustomShops() {
+      localStorage.setItem(CUSTOM_SHOPS_KEY, JSON.stringify(customShops));
+    }
+
+    function saveCustomComplexes() {
+      localStorage.setItem(CUSTOM_COMPLEXES_KEY, JSON.stringify(customComplexes));
+    }
+
+    function saveCustomModels() {
+      localStorage.setItem(CUSTOM_MODELS_KEY, JSON.stringify(customModels));
     }
 
     function saveSettings() {
@@ -1708,16 +1774,14 @@
     }
 
     /* ==========================================================================
-       3. Audio, Haptic & Visual Feedback
+       3. Audio, Haptic & Feedback
        ========================================================================== */
     function beep(freq, duration = 120) {
       if (!settings.sound) return;
       try {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!audioCtx) audioCtx = new AudioContextClass();
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
@@ -1732,11 +1796,8 @@
 
       if (settings.vibration && navigator.vibrate) {
         try {
-          if (freq >= 600) {
-            navigator.vibrate(80);
-          } else {
-            navigator.vibrate([100, 50, 100]);
-          }
+          if (freq >= 600) navigator.vibrate(80);
+          else navigator.vibrate([100, 50, 100]);
         } catch (e) {}
       }
     }
@@ -1746,9 +1807,7 @@
       if (!overlay) return;
       overlay.style.backgroundColor = type === 'good' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.35)';
       overlay.style.opacity = '1';
-      setTimeout(() => {
-        overlay.style.opacity = '0';
-      }, 180);
+      setTimeout(() => { overlay.style.opacity = '0'; }, 180);
     }
 
     function showBanner(text, type = 'ready', extra = {}) {
@@ -1757,13 +1816,15 @@
       const bannerVal = document.getElementById('bannerValue');
       const confirmActions = document.getElementById('bannerConfirmActions');
       const bannerAssetTag = document.getElementById('bannerAssetTag');
-      const bannerLocTag = document.getElementById('bannerLocTag');
+      const bannerShopTag = document.getElementById('bannerShopTag');
+      const bannerComplexTag = document.getElementById('bannerComplexTag');
 
       banner.className = '';
       confirmActions.style.display = 'none';
 
       bannerAssetTag.textContent = activeBatch.assetName || 'Asset';
-      bannerLocTag.textContent = activeBatch.location || 'Head Office';
+      bannerShopTag.textContent = activeBatch.shop || 'Shop';
+      bannerComplexTag.textContent = activeBatch.complex || 'Complex';
 
       if (type === 'good') {
         banner.className = 'banner-good';
@@ -1793,23 +1854,18 @@
       }
 
       let serial = String(raw).trim();
-      if (settings.trimSpaces) {
-        serial = serial.replace(/\s+/g, '');
-      }
-      if (settings.upperCase) {
-        serial = serial.toUpperCase();
-      }
+      if (settings.trimSpaces) serial = serial.replace(/\s+/g, '');
+      if (settings.upperCase) serial = serial.toUpperCase();
 
       if (serial.length < settings.minLen) {
         return { ok: false, reason: `Too short (min ${settings.minLen} chars)` };
       }
 
-      // Duplicate check (case-insensitive)
       const existing = items.find(i => i.serial.toUpperCase() === serial.toUpperCase());
       if (existing) {
         return { 
           ok: false, 
-          reason: `Duplicate (Already scanned for ${existing.assetName} at ${existing.location})`, 
+          reason: `Duplicate (Already scanned for ${existing.assetName} at ${existing.shop})`, 
           serial 
         };
       }
@@ -1817,10 +1873,12 @@
       const item = {
         id: Date.now() + '.' + Math.random().toString(36).substr(2, 8),
         serial,
-        assetName: activeBatch.assetName || 'IT Asset',
-        location: activeBatch.location || 'Head Office',
-        assetType: activeBatch.assetType || 'Equipment',
+        assetName: activeBatch.assetName || 'Epson printer',
+        category: activeBatch.category || 'PRINTER / COPIER / SCANNER',
+        shop: activeBatch.shop || 'Head Office',
+        complex: activeBatch.complex || 'TV City Complex',
         condition: activeBatch.condition || 'Good',
+        purchaseDate: activeBatch.purchaseDate || new Date().toISOString().split('T')[0],
         scannedAt: new Date().toISOString(),
         source
       };
@@ -1859,31 +1917,155 @@
     }
 
     /* ==========================================================================
-       5. Rendering the UI
+       5. Dynamic Dropdowns & Preset Wiring
+       ========================================================================== */
+    function updateModelsDropdown() {
+      const cat = activeBatch.category || 'PRINTER / COPIER / SCANNER';
+      const modelSelect = document.getElementById('selectAssetName');
+      modelSelect.innerHTML = '';
+
+      // Standard models from category
+      const stdModels = CATEGORIES_MAP[cat] || ['IT Asset'];
+      const optGroupStd = document.createElement('optgroup');
+      optGroupStd.label = `📦 ${cat} Models`;
+      stdModels.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m;
+        optGroupStd.appendChild(opt);
+      });
+      modelSelect.appendChild(optGroupStd);
+
+      // Custom models for this category
+      if (customModels[cat] && customModels[cat].length) {
+        const optGroupCust = document.createElement('optgroup');
+        optGroupCust.label = '➕ Custom Models';
+        customModels[cat].forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m;
+          opt.textContent = m;
+          optGroupCust.appendChild(opt);
+        });
+        modelSelect.appendChild(optGroupCust);
+      }
+
+      // Add custom option
+      const optGroupAdd = document.createElement('optgroup');
+      optGroupAdd.label = '➕ Add New';
+      const addOpt = document.createElement('option');
+      addOpt.value = '__NEW_MODEL__';
+      addOpt.textContent = '+ Type Custom Model...';
+      optGroupAdd.appendChild(addOpt);
+      modelSelect.appendChild(optGroupAdd);
+
+      // Select active model if present in this category, else default to first
+      if ([...modelSelect.options].some(o => o.value === activeBatch.assetName)) {
+        modelSelect.value = activeBatch.assetName;
+      } else {
+        activeBatch.assetName = stdModels[0];
+        modelSelect.value = activeBatch.assetName;
+        saveBatch();
+      }
+    }
+
+    function populateShopsDropdown() {
+      const shopSelect = document.getElementById('selectShop');
+      const customOptGroup = document.getElementById('customShopOptGroup');
+      customOptGroup.innerHTML = '';
+
+      customShops.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = `🏪 ${s}`;
+        customOptGroup.appendChild(opt);
+      });
+
+      const addOpt = document.createElement('option');
+      addOpt.value = '__NEW_SHOP__';
+      addOpt.textContent = '➕ Add Custom Shop...';
+      customOptGroup.appendChild(addOpt);
+
+      if ([...shopSelect.options].some(o => o.value === activeBatch.shop)) {
+        shopSelect.value = activeBatch.shop;
+      }
+    }
+
+    function populateComplexesDropdown() {
+      const complexSelect = document.getElementById('selectComplex');
+      const customOptGroup = document.getElementById('customComplexOptGroup');
+      customOptGroup.innerHTML = '';
+
+      customComplexes.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = `🏢 ${c}`;
+        customOptGroup.appendChild(opt);
+      });
+
+      const addOpt = document.createElement('option');
+      addOpt.value = '__NEW_COMPLEX__';
+      addOpt.textContent = '➕ Add Custom Site / Complex...';
+      customOptGroup.appendChild(addOpt);
+
+      if ([...complexSelect.options].some(o => o.value === activeBatch.complex)) {
+        complexSelect.value = activeBatch.complex;
+      }
+    }
+
+    function quickBatchApply(cat, model, shop, complex) {
+      activeBatch.category = cat;
+      activeBatch.assetName = model;
+      activeBatch.shop = shop;
+      activeBatch.complex = complex;
+
+      document.getElementById('selectCategory').value = cat;
+      updateModelsDropdown();
+      document.getElementById('selectAssetName').value = model;
+      document.getElementById('selectShop').value = shop;
+      document.getElementById('selectComplex').value = complex;
+
+      saveBatch();
+      render();
+      showBanner(`Batch switched: ${model} @ ${shop}`, 'ready');
+      beep(700, 60);
+
+      // Update chip styling
+      document.querySelectorAll('.chip-btn').forEach(btn => {
+        btn.classList.toggle('chip-active', btn.textContent.includes(model.split(' ')[0]));
+      });
+    }
+
+    /* ==========================================================================
+       6. Rendering Scanned List and Badges
        ========================================================================== */
     function render() {
       // 1. Counter
       const countEl = document.getElementById('countDisplay');
       if (countEl) countEl.textContent = items.length;
 
-      // 2. HUD Badges
-      const hudTarget = document.getElementById('hudTargetText');
-      if (hudTarget) hudTarget.textContent = `${activeBatch.location} • ${activeBatch.assetName}`;
-
+      // 2. Summary Badges
       const summaryTag = document.getElementById('activeBatchSummary');
-      if (summaryTag) summaryTag.textContent = `${activeBatch.location} • ${activeBatch.assetName}`;
+      if (summaryTag) {
+        summaryTag.textContent = `${activeBatch.assetName} • ${activeBatch.shop} • ${activeBatch.complex}`;
+      }
 
-      // 3. List
+      const hudTarget = document.getElementById('hudTargetText');
+      if (hudTarget) {
+        hudTarget.textContent = `${activeBatch.shop} • ${activeBatch.complex}`;
+      }
+
+      // 3. Render List
       const listEl = document.getElementById('list');
       const filterVal = (document.getElementById('listFilter')?.value || '').trim().toLowerCase();
-
       listEl.innerHTML = '';
 
       const filteredItems = filterVal 
         ? items.filter(i => 
             i.serial.toLowerCase().includes(filterVal) ||
             (i.assetName && i.assetName.toLowerCase().includes(filterVal)) ||
-            (i.location && i.location.toLowerCase().includes(filterVal))
+            (i.shop && i.shop.toLowerCase().includes(filterVal)) ||
+            (i.complex && i.complex.toLowerCase().includes(filterVal)) ||
+            (i.category && i.category.toLowerCase().includes(filterVal))
           )
         : items;
 
@@ -1919,19 +2101,33 @@
         const metaDiv = document.createElement('div');
         metaDiv.className = 'scan-item-meta';
 
-        // Asset Name Pill
+        // 1. Asset Name Pill
         const assetPill = document.createElement('span');
         assetPill.className = 'scan-item-pill';
         assetPill.textContent = `📦 ${item.assetName || 'Asset'}`;
         metaDiv.appendChild(assetPill);
 
-        // Location Pill
-        const locPill = document.createElement('span');
-        locPill.className = 'scan-item-pill pill-loc';
-        locPill.textContent = `📍 ${item.location || 'Head Office'}`;
-        metaDiv.appendChild(locPill);
+        // 2. Shop Pill
+        const shopPill = document.createElement('span');
+        shopPill.className = 'scan-item-pill pill-shop';
+        shopPill.textContent = `🏪 ${item.shop || 'Shop'}`;
+        metaDiv.appendChild(shopPill);
 
-        // Time
+        // 3. Complex Pill
+        const complexPill = document.createElement('span');
+        complexPill.className = 'scan-item-pill pill-complex';
+        complexPill.textContent = `🏢 ${item.complex || 'Complex'}`;
+        metaDiv.appendChild(complexPill);
+
+        // 4. Condition Pill
+        if (item.condition) {
+          const condPill = document.createElement('span');
+          condPill.className = 'scan-item-pill pill-cond';
+          condPill.textContent = `⭐ ${item.condition}`;
+          metaDiv.appendChild(condPill);
+        }
+
+        // 5. Time
         const timeSpan = document.createElement('span');
         const timeObj = new Date(item.scannedAt);
         timeSpan.textContent = isNaN(timeObj) ? '' : timeObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1988,7 +2184,7 @@
     }
 
     /* ==========================================================================
-       6. High-Performance Dual Scanner Engine (Native ML + Html5Qrcode)
+       7. High-Performance Dual Scanner Engine
        ========================================================================== */
     function getActiveVideoTrack() {
       const video = document.querySelector('#reader video');
@@ -2008,9 +2204,7 @@
             document.getElementById('hudEngineText').textContent = 'Native ML Active (High Speed)';
             return true;
           }
-        } catch (e) {
-          console.warn('Native BarcodeDetector not available:', e);
-        }
+        } catch (e) {}
       }
       nativeDetector = null;
       document.getElementById('hudEngineText').textContent = 'ZXing HD Active';
@@ -2044,17 +2238,13 @@
         return;
       }
 
-      if (!scanner) {
-        scanner = new Html5Qrcode('reader');
-      }
+      if (!scanner) scanner = new Html5Qrcode('reader');
 
       await initNativeDetector();
 
-      // Optimal 1080p camera configuration with dynamic responsive qrbox
       const config = {
         fps: 25,
         qrbox: (viewfinderWidth, viewfinderHeight) => {
-          // Wide rectangular box perfect for 1D asset serial numbers and 2D QR codes
           const w = Math.floor(viewfinderWidth * 0.88);
           const h = Math.floor(Math.min(viewfinderHeight * 0.65, 260));
           return { width: Math.max(w, 240), height: Math.max(h, 120) };
@@ -2071,9 +2261,7 @@
           Html5QrcodeSupportedFormats.QR_CODE,
           Html5QrcodeSupportedFormats.DATA_MATRIX
         ],
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: settings.hardwareAccel
-        }
+        experimentalFeatures: { useBarCodeDetectorIfSupported: settings.hardwareAccel }
       };
 
       const cameraConstraints = {
@@ -2087,7 +2275,7 @@
           cameraConstraints,
           config,
           onScanSuccess,
-          () => {} // suppress frame miss noise
+          () => {}
         );
 
         scanning = true;
@@ -2096,43 +2284,24 @@
         document.getElementById('btnStartText').textContent = 'Stop Camera';
         document.getElementById('btnStart').classList.replace('btn-primary', 'btn-danger');
 
-        // Check camera track capabilities
         setTimeout(() => {
           const track = getActiveVideoTrack();
           if (track && track.getCapabilities) {
             const caps = track.getCapabilities();
-            // Enable Torch if supported
             const torchBtn = document.getElementById('btnTorch');
-            if ('torch' in caps || caps.fillLightMode) {
-              torchBtn.disabled = false;
-            } else {
-              // Screen light assist fallback
-              torchBtn.disabled = false;
-            }
-
-            // Enable Zoom if supported
+            torchBtn.disabled = false;
             const zoomBtn = document.getElementById('btnZoom');
-            if (caps.zoom) {
-              zoomBtn.disabled = false;
-            }
+            if (caps.zoom) zoomBtn.disabled = false;
           } else {
             document.getElementById('btnTorch').disabled = false;
           }
 
-          // Apply low-light contrast if enabled
-          if (lowLightBoostOn) {
-            applyLowLightBoost();
-          }
-
-          // Kick off native detection loop if supported
-          if (nativeDetector) {
-            runNativeDetectorLoop();
-          }
+          if (lowLightBoostOn) applyLowLightBoost();
+          if (nativeDetector) runNativeDetectorLoop();
         }, 500);
 
         showBanner('Camera active. Align barcode in box.', 'ready');
       } catch (err) {
-        console.error('Camera start error:', err);
         showBanner('Camera error: ' + err, 'bad');
         beep(220);
       }
@@ -2145,9 +2314,7 @@
       }
 
       if (scanning && scanner) {
-        try {
-          await scanner.stop();
-        } catch (e) {}
+        try { await scanner.stop(); } catch (e) {}
         scanning = false;
         torchOn = false;
         document.getElementById('cameraCard').classList.remove('camera-active');
@@ -2167,7 +2334,7 @@
     }
 
     /* ==========================================================================
-       7. Torch, Low-Light Booster & Zoom Controls
+       8. Torch, Boost & Zoom
        ========================================================================== */
     async function toggleTorch() {
       if (!scanning) return;
@@ -2176,29 +2343,20 @@
       const track = getActiveVideoTrack();
       let hardwareSuccess = false;
 
-      // 1. Direct MediaStreamTrack constraint
       if (track) {
         try {
-          await track.applyConstraints({
-            advanced: [{ torch: torchOn }]
-          });
-          hardwareSuccess = true;
-        } catch (e) {
-          console.warn('Track torch constraint failed:', e);
-        }
-      }
-
-      // 2. Html5Qrcode fallback method
-      if (!hardwareSuccess && scanner && typeof scanner.applyVideoConstraints === 'function') {
-        try {
-          await scanner.applyVideoConstraints({
-            advanced: [{ torch: torchOn }]
-          });
+          await track.applyConstraints({ advanced: [{ torch: torchOn }] });
           hardwareSuccess = true;
         } catch (e) {}
       }
 
-      // 3. Screen light assist fallback if hardware torch is rejected
+      if (!hardwareSuccess && scanner && typeof scanner.applyVideoConstraints === 'function') {
+        try {
+          await scanner.applyVideoConstraints({ advanced: [{ torch: torchOn }] });
+          hardwareSuccess = true;
+        } catch (e) {}
+      }
+
       const screenAssist = document.getElementById('screenLightAssist');
       if (torchOn) {
         torchBtn.classList.add('btn-torch-active');
@@ -2221,14 +2379,8 @@
     function applyLowLightBoost() {
       const video = document.querySelector('#reader video');
       if (video) {
-        if (lowLightBoostOn) {
-          // Sharp high contrast + boosted brightness for dim lighting
-          video.style.filter = 'contrast(1.6) brightness(1.35) saturate(0.7)';
-        } else {
-          video.style.filter = '';
-        }
+        video.style.filter = lowLightBoostOn ? 'contrast(1.6) brightness(1.35) saturate(0.7)' : '';
       }
-
       const track = getActiveVideoTrack();
       if (track && track.getCapabilities) {
         const caps = track.getCapabilities();
@@ -2268,21 +2420,15 @@
         await track.applyConstraints({ advanced: [{ zoom: currentZoom }] });
         const zoomBtn = document.getElementById('btnZoom');
         document.getElementById('btnZoomText').textContent = currentZoom + 'x';
-        if (currentZoom > 1) {
-          zoomBtn.classList.add('btn-zoom-active');
-        } else {
-          zoomBtn.classList.remove('btn-zoom-active');
-        }
+        if (currentZoom > 1) zoomBtn.classList.add('btn-zoom-active');
+        else zoomBtn.classList.remove('btn-zoom-active');
         beep(600, 50);
       } catch (e) {}
     }
 
     function onScanSuccess(text) {
       const now = Date.now();
-      // 2.2 second debounce on identical barcode
-      if (text === lastCode && (now - lastTime < 2200)) {
-        return;
-      }
+      if (text === lastCode && (now - lastTime < 2200)) return;
       lastCode = text;
       lastTime = now;
       handleCandidate(text);
@@ -2308,53 +2454,12 @@
     }
 
     /* ==========================================================================
-       8. Presets & Location Switcher
-       ========================================================================== */
-    function setPresetAsset(name, category = '') {
-      activeBatch.assetName = name;
-      if (category) activeBatch.assetType = category;
-      document.getElementById('inputAssetName').value = name;
-      saveBatch();
-      render();
-
-      // Highlight active chip
-      document.querySelectorAll('.chip-btn').forEach(btn => {
-        btn.classList.toggle('chip-active', btn.textContent.includes(name));
-      });
-      showBanner(`Batch switched to: ${name}`, 'ready');
-      beep(700, 50);
-    }
-
-    function populateCustomLocations() {
-      const optGroup = document.getElementById('customLocationOptGroup');
-      // Keep only "+ Add Custom Location..." at the end
-      optGroup.innerHTML = '';
-      customLocations.forEach(loc => {
-        const opt = document.createElement('option');
-        opt.value = loc;
-        opt.textContent = `📍 ${loc}`;
-        optGroup.appendChild(opt);
-      });
-      const addOpt = document.createElement('option');
-      addOpt.value = '__NEW__';
-      addOpt.textContent = '➕ Add Custom Location...';
-      optGroup.appendChild(addOpt);
-    }
-
-    /* ==========================================================================
-       9. Export to .xlsx (SheetJS)
+       9. Export to .xlsx (Exact 13-Column Asset Register)
        ========================================================================== */
     function stamp() {
       const d = new Date();
       const p = n => String(n).padStart(2, '0');
-      return (
-        d.getFullYear() +
-        p(d.getMonth() + 1) +
-        p(d.getDate()) +
-        '_' +
-        p(d.getHours()) +
-        p(d.getMinutes())
-      );
+      return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;
     }
 
     function exportXlsx() {
@@ -2373,15 +2478,14 @@
       // Oldest first so row 2 is the first item scanned
       const rows = [...items].reverse().map(i => {
         const r = HEADERS.map(() => '');
-        // Exact column mapping for assets_import_template.xlsx:
-        r[0] = String(i.assetName || 'IT Asset');           // Col A: Asset Name
-        r[1] = String(i.assetTag || '');                    // Col B: Asset Tag
-        r[2] = String(i.assetType || 'Equipment');          // Col C: Asset Type
-        r[SERIAL_COL] = String(i.serial);                   // Col D: Serial Number
-        r[6] = String(i.scannedAt ? i.scannedAt.split('T')[0] : ''); // Col G: Purchase / Scan Date
-        r[7] = String(i.location || 'Head Office');         // Col H: Shop / Location
-        r[8] = String(i.complex || 'Northern Region');      // Col I: Complex / Region
-        r[9] = String(i.condition || 'Good');               // Col J: Condition
+        r[0] = String(i.assetName || 'IT Asset');                         // Col A: Asset Name
+        r[1] = String(i.assetTag || '');                                  // Col B: Asset Tag
+        r[2] = String(i.category || 'PRINTER / COPIER / SCANNER');        // Col C: Asset Type (Category)
+        r[SERIAL_COL] = String(i.serial);                                 // Col D: Serial Number
+        r[6] = String(i.purchaseDate || (i.scannedAt ? i.scannedAt.split('T')[0] : '')); // Col G: Purchase Date
+        r[7] = String(i.shop || 'Head Office');                           // Col H: Shop
+        r[8] = String(i.complex || 'TV City Complex');                    // Col I: Complex / Site Location
+        r[9] = String(i.condition || 'Good');                             // Col J: Condition
         return r;
       });
 
@@ -2413,17 +2517,17 @@
     }
 
     /* ==========================================================================
-       10. Modals & UI Events
+       10. Modals & UI Wiring
        ========================================================================== */
-    function toggleCollapsible(cardId) {
-      document.getElementById(cardId).classList.toggle('collapsible-open');
-    }
-
     function openEditModal(item) {
       editingItemId = item.id;
       document.getElementById('editSerialInput').value = item.serial;
+      document.getElementById('editCategoryInput').value = item.category || '';
       document.getElementById('editAssetNameInput').value = item.assetName || '';
-      document.getElementById('editLocationInput').value = item.location || '';
+      document.getElementById('editShopInput').value = item.shop || '';
+      document.getElementById('editComplexInput').value = item.complex || '';
+      document.getElementById('editConditionInput').value = item.condition || 'Good';
+      document.getElementById('editDateInput').value = item.purchaseDate || (item.scannedAt ? item.scannedAt.split('T')[0] : '');
       document.getElementById('editError').style.display = 'none';
       document.getElementById('editModal').classList.add('modal-active');
       document.getElementById('editSerialInput').focus();
@@ -2437,8 +2541,6 @@
     function saveEditedItem() {
       if (!editingItemId) return;
       const serialInput = document.getElementById('editSerialInput');
-      const assetInput = document.getElementById('editAssetNameInput');
-      const locInput = document.getElementById('editLocationInput');
       const err = document.getElementById('editError');
 
       let val = serialInput.value.trim();
@@ -2461,8 +2563,12 @@
       const item = items.find(i => i.id === editingItemId);
       if (item) {
         item.serial = val;
-        item.assetName = assetInput.value.trim() || item.assetName;
-        item.location = locInput.value.trim() || item.location;
+        item.category = document.getElementById('editCategoryInput').value.trim() || item.category;
+        item.assetName = document.getElementById('editAssetNameInput').value.trim() || item.assetName;
+        item.shop = document.getElementById('editShopInput').value.trim() || item.shop;
+        item.complex = document.getElementById('editComplexInput').value.trim() || item.complex;
+        item.condition = document.getElementById('editConditionInput').value.trim() || item.condition;
+        item.purchaseDate = document.getElementById('editDateInput').value || item.purchaseDate;
         save();
         render();
         showBanner(`Updated: ${val} (${item.assetName})`, 'good');
@@ -2471,138 +2577,184 @@
       closeEditModal();
     }
 
+    function openCustomModal(type) {
+      pendingCustomType = type;
+      const title = document.getElementById('customModalTitle');
+      const desc = document.getElementById('customModalDesc');
+      const label = document.getElementById('customModalLabel');
+      const input = document.getElementById('customModalInput');
+      input.value = '';
+
+      if (type === 'shop') {
+        title.textContent = 'Add Custom Shop';
+        desc.textContent = 'Enter a new shop, department, or business unit name.';
+        label.textContent = 'Shop Name';
+        input.placeholder = 'e.g. Bakers Inn Graniteside, IT Audit Dept';
+      } else if (type === 'complex') {
+        title.textContent = 'Add Custom Site / Complex';
+        desc.textContent = 'Enter a new site location, building, or regional complex.';
+        label.textContent = 'Complex Name';
+        input.placeholder = 'e.g. Msasa Logistics Hub, Gweru Main Depot';
+      } else if (type === 'model') {
+        title.textContent = 'Add Custom Model';
+        desc.textContent = `Enter a specific asset model name for ${activeBatch.category}.`;
+        label.textContent = 'Asset Model Name';
+        input.placeholder = 'e.g. Epson EcoTank L14150, Dell Precision 5820';
+      }
+
+      document.getElementById('customEntryModal').classList.add('modal-active');
+      input.focus();
+    }
+
+    function closeCustomModal() {
+      pendingCustomType = null;
+      document.getElementById('customEntryModal').classList.remove('modal-active');
+    }
+
     /* ==========================================================================
        11. DOM Ready Initialization
        ========================================================================== */
     document.addEventListener('DOMContentLoaded', () => {
       load();
-      populateCustomLocations();
 
-      // Reflect active batch in inputs
-      const locSelect = document.getElementById('selectLocation');
-      if (locSelect) {
-        if ([...locSelect.options].some(o => o.value === activeBatch.location)) {
-          locSelect.value = activeBatch.location;
-        } else if (activeBatch.location) {
-          customLocations.push(activeBatch.location);
-          populateCustomLocations();
-          locSelect.value = activeBatch.location;
-        }
-      }
+      // Setup Dropdowns
+      const catSelect = document.getElementById('selectCategory');
+      const modelSelect = document.getElementById('selectAssetName');
+      const shopSelect = document.getElementById('selectShop');
+      const complexSelect = document.getElementById('selectComplex');
+      const condSelect = document.getElementById('selectCondition');
+      const dateInput = document.getElementById('inputPurchaseDate');
 
-      const nameInput = document.getElementById('inputAssetName');
-      if (nameInput) {
-        nameInput.value = activeBatch.assetName;
-      }
+      // Populate Categories & Models
+      if (activeBatch.category) catSelect.value = activeBatch.category;
+      updateModelsDropdown();
+      populateShopsDropdown();
+      populateComplexesDropdown();
 
-      // Location select handler
-      locSelect.onchange = (e) => {
-        if (e.target.value === '__NEW__') {
-          document.getElementById('newLocationInput').value = '';
-          document.getElementById('customLocationModal').classList.add('modal-active');
-          document.getElementById('newLocationInput').focus();
-        } else {
-          activeBatch.location = e.target.value;
-          saveBatch();
-          render();
-          showBanner(`Location set to: ${activeBatch.location}`, 'ready');
-        }
-      };
+      if (activeBatch.condition) condSelect.value = activeBatch.condition;
+      if (activeBatch.purchaseDate) dateInput.value = activeBatch.purchaseDate;
+      else dateInput.value = new Date().toISOString().split('T')[0];
 
-      // Custom location modal buttons
-      document.getElementById('btnCancelCustomLocation').onclick = () => {
-        document.getElementById('customLocationModal').classList.remove('modal-active');
-        locSelect.value = activeBatch.location;
-      };
-
-      document.getElementById('btnSaveCustomLocation').onclick = () => {
-        const val = document.getElementById('newLocationInput').value.trim();
-        if (val) {
-          if (!customLocations.includes(val)) {
-            customLocations.push(val);
-            saveCustomLocations();
-            populateCustomLocations();
-          }
-          activeBatch.location = val;
-          locSelect.value = val;
-          saveBatch();
-          render();
-          showBanner(`New location added: ${val}`, 'good');
-        }
-        document.getElementById('customLocationModal').classList.remove('modal-active');
-      };
-
-      // Asset Name input change
-      nameInput.addEventListener('input', (e) => {
-        activeBatch.assetName = e.target.value.trim() || 'IT Asset';
-        // Auto-assign category
-        const valLower = activeBatch.assetName.toLowerCase();
-        if (valLower.includes('printer') || valLower.includes('laserjet') || valLower.includes('epson')) {
-          activeBatch.assetType = 'Printer / Copier';
-        } else if (valLower.includes('laptop') || valLower.includes('notebook')) {
-          activeBatch.assetType = 'Laptop / Notebook';
-        } else if (valLower.includes('pc') || valLower.includes('desktop') || valLower.includes('optiplex')) {
-          activeBatch.assetType = 'Desktop PC / Computer';
-        } else if (valLower.includes('monitor') || valLower.includes('display')) {
-          activeBatch.assetType = 'Monitor / Display';
-        } else if (valLower.includes('ups')) {
-          activeBatch.assetType = 'Power / UPS';
-        } else if (valLower.includes('switch') || valLower.includes('router')) {
-          activeBatch.assetType = 'Networking';
-        }
+      // Change Handlers
+      catSelect.onchange = (e) => {
+        activeBatch.category = e.target.value;
+        updateModelsDropdown();
+        activeBatch.assetName = modelSelect.value;
         saveBatch();
         render();
-      });
+        showBanner(`Category changed to: ${activeBatch.category}`, 'ready');
+      };
+
+      modelSelect.onchange = (e) => {
+        if (e.target.value === '__NEW_MODEL__') {
+          openCustomModal('model');
+        } else {
+          activeBatch.assetName = e.target.value;
+          saveBatch();
+          render();
+          showBanner(`Model set: ${activeBatch.assetName}`, 'ready');
+        }
+      };
+
+      shopSelect.onchange = (e) => {
+        if (e.target.value === '__NEW_SHOP__') {
+          openCustomModal('shop');
+        } else {
+          activeBatch.shop = e.target.value;
+          saveBatch();
+          render();
+          showBanner(`Shop set: ${activeBatch.shop}`, 'ready');
+        }
+      };
+
+      complexSelect.onchange = (e) => {
+        if (e.target.value === '__NEW_COMPLEX__') {
+          openCustomModal('complex');
+        } else {
+          activeBatch.complex = e.target.value;
+          saveBatch();
+          render();
+          showBanner(`Site/Complex set: ${activeBatch.complex}`, 'ready');
+        }
+      };
+
+      condSelect.onchange = (e) => {
+        activeBatch.condition = e.target.value;
+        saveBatch();
+        render();
+      };
+
+      dateInput.onchange = (e) => {
+        activeBatch.purchaseDate = e.target.value;
+        saveBatch();
+        render();
+      };
+
+      // Toggle Additional Register Fields
+      const toggleExtraBtn = document.getElementById('btnToggleExtraFields');
+      const extraFieldsDiv = document.getElementById('extraRegisterFields');
+      const chevron = document.getElementById('extraFieldsChevron');
+      toggleExtraBtn.onclick = () => {
+        extraFieldsDiv.classList.toggle('open');
+        chevron.textContent = extraFieldsDiv.classList.contains('open') ? '▴' : '▾';
+      };
+
+      // Custom Entry Modal Buttons
+      document.getElementById('btnCancelCustomEntry').onclick = () => {
+        closeCustomModal();
+        modelSelect.value = activeBatch.assetName;
+        shopSelect.value = activeBatch.shop;
+        complexSelect.value = activeBatch.complex;
+      };
+
+      document.getElementById('btnSaveCustomEntry').onclick = () => {
+        const val = document.getElementById('customModalInput').value.trim();
+        if (val) {
+          if (pendingCustomType === 'shop') {
+            if (!customShops.includes(val)) {
+              customShops.push(val);
+              saveCustomShops();
+              populateShopsDropdown();
+            }
+            activeBatch.shop = val;
+            shopSelect.value = val;
+          } else if (pendingCustomType === 'complex') {
+            if (!customComplexes.includes(val)) {
+              customComplexes.push(val);
+              saveCustomComplexes();
+              populateComplexesDropdown();
+            }
+            activeBatch.complex = val;
+            complexSelect.value = val;
+          } else if (pendingCustomType === 'model') {
+            const cat = activeBatch.category;
+            if (!customModels[cat]) customModels[cat] = [];
+            if (!customModels[cat].includes(val)) {
+              customModels[cat].push(val);
+              saveCustomModels();
+              updateModelsDropdown();
+            }
+            activeBatch.assetName = val;
+            modelSelect.value = val;
+          }
+          saveBatch();
+          render();
+          showBanner(`Added: ${val}`, 'good');
+        }
+        closeCustomModal();
+      };
 
       // Camera control buttons
       document.getElementById('btnStart').onclick = () => {
-        if (scanning) {
-          stopScan();
-        } else {
-          startScan();
-        }
+        if (scanning) stopScan();
+        else startScan();
       };
 
       document.getElementById('btnTorch').onclick = toggleTorch;
       document.getElementById('btnLowLight').onclick = toggleLowLightBoost;
       document.getElementById('btnZoom').onclick = toggleZoom;
 
-      // Settings checkboxes
-      document.getElementById('toggleHardwareAccel').checked = settings.hardwareAccel;
-      document.getElementById('toggleConfirmScan').checked = settings.confirmScan;
-      document.getElementById('toggleUppercase').checked = settings.upperCase;
-      document.getElementById('toggleTrimSpaces').checked = settings.trimSpaces;
-      document.getElementById('toggleVibration').checked = settings.vibration;
-      document.getElementById('inputMinLength').value = settings.minLen;
-
-      document.getElementById('toggleHardwareAccel').onchange = (e) => {
-        settings.hardwareAccel = e.target.checked;
-        saveSettings();
-      };
-      document.getElementById('toggleConfirmScan').onchange = (e) => {
-        settings.confirmScan = e.target.checked;
-        saveSettings();
-      };
-      document.getElementById('toggleUppercase').onchange = (e) => {
-        settings.upperCase = e.target.checked;
-        saveSettings();
-      };
-      document.getElementById('toggleTrimSpaces').onchange = (e) => {
-        settings.trimSpaces = e.target.checked;
-        saveSettings();
-      };
-      document.getElementById('toggleVibration').onchange = (e) => {
-        settings.vibration = e.target.checked;
-        saveSettings();
-      };
-      document.getElementById('inputMinLength').onchange = (e) => {
-        const val = parseInt(e.target.value, 10);
-        settings.minLen = isNaN(val) || val < 1 ? 4 : val;
-        e.target.value = settings.minLen;
-        saveSettings();
-      };
-
-      // Sound button
+      // Audio toggle
       const updateSoundIcon = () => {
         document.getElementById('soundIconOn').style.display = settings.sound ? 'block' : 'none';
         document.getElementById('soundIconOff').style.display = settings.sound ? 'none' : 'block';
@@ -2704,7 +2856,7 @@
       // Hotkey (Ctrl+Z / Cmd+Z for undo)
       window.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-          if (document.activeElement.tagName !== 'INPUT') {
+          if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
             e.preventDefault();
             undoLastScan();
           }
@@ -2715,7 +2867,7 @@
 
       // Register PWA Service Worker
       if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        navigator.serviceWorker.register('./sw.js?v=2').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=3').then(reg => {
           reg.update();
         }).catch(() => {});
       }
