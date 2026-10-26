@@ -4,14 +4,23 @@ A fast, phone-optimized continuous barcode & QR code scanning Progressive Web Ap
 
 ---
 
-## ✨ Features
+## ✨ Features in PRO v2
 
-- 📷 **Continuous Camera Scanning**: Real-time barcode & QR scanning directly in your mobile browser using `html5-qrcode`.
+- 🏢 **Active Location & Asset Batch Presets**:
+  - Select company branches upfront: **Head Office**, **Harare (Msasa, Graniteside, Avondale, etc.)**, **Bulawayo (Belmont, Kelvin)**, **Gweru**, **Mutare**, or add custom company locations.
+  - Choose or type asset models: **Epson printer**, **HP LaserJet**, **Desktop PC**, **Laptop**, **Monitor**, **UPS**, **Switch**, etc.
+  - 1-tap quick chips switch asset type and location instantly during physical audits.
+  - Every scanned barcode is stamped with its location, asset name, category, and timestamp.
+- ⚡ **Low-Light & Dim Environment Booster**:
+  - **Hardware ML BarcodeDetector**: Direct native acceleration for instant barcode decode even under poor lighting, steep angles, or blurry motion.
+  - **⚡ Boost Button**: Real-time high-contrast digital filter (`contrast(1.6) brightness(1.35)`) making faint barcode lines pop against dark surfaces.
+  - **🔦 Fixed Torch & Screen Illuminator**: Reliable flashlight activation via `MediaStreamTrack` with an automatic bright screen floodlight fallback.
+  - **🔍 1x / 2x Zoom**: Scan tiny barcode stickers without casting a phone shadow.
+- 📷 **Continuous High-Res Scanning**: 1080p stream with dynamic wide-aspect reticle tuned for 1D asset serial labels and 2D QR codes.
 - ⚡ **Duplicate Detection**: Prevents duplicate entries with warning alerts and optional overrides.
 - 🔊 **Haptic & Audio Feedback**: Instant tactile vibrations and audio beeps on successful scans.
-- 📝 **Asset Details & Metadata**: Set location, category, model, status, notes, and custom fields per scan or in bulk.
 - 📊 **Excel (.xlsx) Export**: One-tap export cleanly formatted for asset import templates using `SheetJS` (`xlsx`).
-- 📱 **Progressive Web App (PWA)**: Installable to home screen on iOS and Android with offline service worker support (`sw.js`).
+- 📱 **Progressive Web App (PWA)**: Installable to home screen on iOS and Android with v2 offline service worker support (`sw.js`).
 - 🛡️ **Zero Backend Dependency**: 100% client-side privacy-first architecture; all asset registers remain in local storage on your device.
 - 🌐 **GitHub Pages Ready**: Can be hosted freely on GitHub Pages with zero build steps!
 

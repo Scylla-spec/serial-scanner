@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0B0F19">
-  <meta name="description" content="Fast, phone-based continuous barcode scanning web app that collects serial numbers and exports directly into Assets import template .xlsx format.">
+  <meta name="description" content="High-performance phone barcode scanner for asset register collection with multi-location presets, asset tagging, low-light boost, and .xlsx export.">
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="apple-touch-icon" href="./icon.svg">
-  <title>Serial Scanner | Asset Register PWA</title>
+  <title>Serial Scanner Pro | Asset Register PWA</title>
 
   <!-- Local libraries with automatic CDN fallback -->
   <script src="./html5-qrcode.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'"></script>
@@ -20,6 +20,7 @@
       --surface: #111827;
       --surface-card: #182234;
       --surface-elevated: #1F2E45;
+      --surface-hover: #263852;
       --border: #2A384F;
       --border-focus: #3B82F6;
       --text: #F9FAFB;
@@ -27,14 +28,16 @@
       --text-dim: #6B7280;
       --primary: #2563EB;
       --primary-hover: #1D4ED8;
+      --primary-glow: rgba(37, 99, 235, 0.4);
       --success: #10B981;
       --success-dark: #064E3B;
       --success-border: #059669;
       --danger: #EF4444;
       --danger-dark: #7F1D1D;
-      --danger-border: #DC2626;
       --warning: #F59E0B;
       --warning-dark: #78350F;
+      --accent: #09878C;
+      --accent-hover: #0b9ea4;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
       --radius: 12px;
@@ -73,7 +76,7 @@
     }
 
     .header-content {
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -88,30 +91,44 @@
     }
 
     .brand-icon {
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, #2563EB, #10B981);
-      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #09878C, #2563EB);
+      border-radius: 9px;
       display: grid;
       place-items: center;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+      box-shadow: 0 2px 10px rgba(9, 135, 140, 0.4);
     }
 
     .brand-icon svg {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       fill: #ffffff;
     }
 
     .brand-text h1 {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.02em;
       color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      background: #09878C;
+      color: #ffffff;
+      padding: 2px 6px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .brand-text span {
-      font-size: 0.72rem;
+      font-size: 0.73rem;
       color: var(--text-dim);
       display: block;
       line-height: 1.1;
@@ -141,25 +158,29 @@
       font-family: var(--font-mono);
       color: #60A5FA;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 1.05rem;
     }
 
     .icon-btn {
       background: var(--surface-elevated);
       border: 1px solid var(--border);
       color: var(--text);
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: var(--radius-sm);
       display: grid;
       place-items: center;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
     }
 
     .icon-btn:hover {
       background: #27364F;
       border-color: #3F5170;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.96);
     }
 
     .icon-btn svg {
@@ -171,7 +192,7 @@
     /* Main Container */
     main {
       width: 100%;
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
       padding: 12px 14px;
       display: flex;
@@ -180,43 +201,189 @@
       flex: 1;
     }
 
-    /* Camera Section */
+    /* Active Preset Configuration Card (Upfront Asset & Location Selection) */
+    .preset-card {
+      background: linear-gradient(145deg, #131D2D, #16243A);
+      border: 1px solid #2B3D5B;
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .preset-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .preset-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #60A5FA;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .preset-status-tag {
+      font-size: 0.72rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34D399;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .preset-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .preset-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .preset-field label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #94A3B8;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .preset-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .preset-field input, .preset-field select {
+      width: 100%;
+      height: 40px;
+      padding: 0 10px;
+      background: #0E1624;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: #F8FAFC;
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .preset-field input:focus, .preset-field select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Fast 1-Tap Chips */
+    .quick-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .quick-chips-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #64748B;
+      text-transform: uppercase;
+      margin-right: 2px;
+    }
+
+    .chip-btn {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #CBD5E1;
+      font-size: 0.76rem;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .chip-btn:hover {
+      background: #283548;
+      color: #FFFFFF;
+      border-color: #60A5FA;
+    }
+
+    .chip-btn.chip-active {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: #3B82F6;
+      color: #93C5FD;
+      font-weight: 600;
+    }
+
+    /* Camera Card Viewport */
     .camera-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
 
     .camera-viewport-wrap {
       position: relative;
       width: 100%;
-      min-height: 240px;
-      height: 38vh;
-      max-height: 360px;
-      background: #000000;
+      height: 310px;
+      background: #030712;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+    }
+
+    @media (max-width: 480px) {
+      .camera-viewport-wrap {
+        height: 270px;
+      }
     }
 
     #reader {
-      width: 100% !important;
-      height: 100% !important;
-      border: none !important;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
     }
 
     #reader video {
       width: 100% !important;
       height: 100% !important;
       object-fit: cover !important;
+      transition: filter 0.25s ease;
     }
 
-    /* Camera Idle State Placeholder */
+    /* Camera Idle Screen */
     .camera-idle-view {
       position: absolute;
       inset: 0;
@@ -224,45 +391,112 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      background: radial-gradient(circle at center, #182234 0%, #080C14 100%);
-      color: var(--text-muted);
-      z-index: 5;
+      padding: 24px;
       text-align: center;
-      padding: 20px;
+      color: var(--text-dim);
+      background: radial-gradient(circle at center, #111A29 0%, #080D17 100%);
+      z-index: 5;
     }
 
     .camera-idle-view svg {
-      width: 48px;
-      height: 48px;
+      width: 52px;
+      height: 52px;
       stroke: var(--text-dim);
-      opacity: 0.8;
+      margin-bottom: 12px;
+      opacity: 0.6;
     }
 
     .camera-idle-view p {
-      font-size: 0.9rem;
-      max-width: 280px;
+      font-size: 0.88rem;
+      max-width: 320px;
+      color: var(--text-muted);
     }
 
-    /* Scan Overlay Reticle */
+    /* Active Camera HUD Overlay */
+    .camera-hud-top {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .hud-badge {
+      background: rgba(11, 15, 25, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #E2E8F0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .hud-badge.hud-engine {
+      color: #34D399;
+      border-color: rgba(52, 211, 153, 0.3);
+    }
+
+    .hud-engine-dot {
+      width: 7px;
+      height: 7px;
+      background: #10B981;
+      border-radius: 50%;
+      animation: pulseDot 1.5s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* Scanning Reticle & Laser */
     .scan-reticle {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 82%;
-      max-width: 320px;
-      height: 120px;
-      border: 2px dashed rgba(96, 165, 250, 0.7);
-      border-radius: 10px;
+      inset: 20px 24px;
       pointer-events: none;
       z-index: 10;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
       display: none;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
     }
 
     .camera-active .scan-reticle {
       display: block;
+    }
+
+    .scan-reticle::before, .scan-reticle::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-color: #3B82F6;
+      border-style: solid;
+    }
+
+    .scan-reticle::before {
+      top: -2px;
+      left: -2px;
+      border-width: 3px 0 0 3px;
+      border-top-left-radius: 14px;
+    }
+
+    .scan-reticle::after {
+      bottom: -2px;
+      right: -2px;
+      border-width: 0 3px 3px 0;
+      border-bottom-right-radius: 14px;
     }
 
     .scan-laser {
@@ -271,172 +505,222 @@
       left: 0;
       right: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, #38BDF8, #60A5FA, transparent);
-      box-shadow: 0 0 8px #38BDF8;
-      animation: laserScan 2s infinite ease-in-out;
+      background: linear-gradient(90deg, transparent, #3B82F6, #60A5FA, #3B82F6, transparent);
+      box-shadow: 0 0 10px #3B82F6, 0 0 18px #60A5FA;
+      animation: laserSweep 2s ease-in-out infinite alternate;
     }
 
-    @keyframes laserScan {
-      0%, 100% { top: 6%; opacity: 0.4; }
-      50% { top: 92%; opacity: 1; }
+    @keyframes laserSweep {
+      0% { top: 10%; }
+      100% { top: 90%; }
+    }
+
+    /* Screen Light Assist Overlay */
+    #screenLightAssist {
+      position: absolute;
+      inset: 0;
+      border: 14px solid rgba(255, 255, 255, 0.95);
+      box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.8);
+      pointer-events: none;
+      z-index: 12;
+      display: none;
     }
 
     /* Camera Controls Bar */
     .camera-controls {
+      padding: 10px 14px;
+      background: var(--surface);
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
       gap: 8px;
-      padding: 10px;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
     }
 
-    /* Banner Component */
-    .banner-container {
-      transition: all 0.25s ease;
-      min-height: 60px;
+    @media (max-width: 480px) {
+      .camera-controls {
+        grid-template-columns: 1.8fr 1fr 1fr 1fr;
+        gap: 6px;
+      }
+      .camera-controls .btn {
+        padding: 8px 6px;
+        font-size: 0.8rem;
+      }
     }
 
-    #banner {
-      padding: 12px 16px;
-      border-radius: var(--radius);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      position: relative;
-      transition: background 0.2s, border-color 0.2s, transform 0.15s;
-    }
-
-    #banner.banner-good {
-      background: var(--success-dark);
-      border-color: var(--success-border);
-      box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
-      animation: popGood 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-    }
-
-    #banner.banner-bad {
-      background: var(--danger-dark);
-      border-color: var(--danger-border);
-      box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
-      animation: shakeBad 0.35s ease-in-out;
-    }
-
-    #banner.banner-confirm {
-      background: #3B2808;
-      border-color: #D97706;
-      box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
-    }
-
-    @keyframes popGood {
-      0% { transform: scale(0.97); }
-      50% { transform: scale(1.02); }
-      100% { transform: scale(1); }
-    }
-
-    @keyframes shakeBad {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-6px); }
-      40%, 80% { transform: translateX(6px); }
-    }
-
-    .banner-status-tag {
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .banner-good .banner-status-tag { color: #34D399; }
-    .banner-bad .banner-status-tag { color: #FCA5A5; }
-    .banner-confirm .banner-status-tag { color: #FCD34D; }
-
-    .banner-value {
-      font-family: var(--font-mono);
-      font-size: 1.25rem;
-      font-weight: 700;
-      word-break: break-all;
-      letter-spacing: 0.02em;
-    }
-
-    .banner-confirm-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    /* Buttons (Large Touch Targets >= 48px) */
-    button, .btn {
-      min-height: 48px;
-      padding: 10px 16px;
-      border-radius: var(--radius-sm);
-      font-family: var(--font-sans);
-      font-size: 0.95rem;
-      font-weight: 600;
-      border: 1px solid transparent;
-      cursor: pointer;
+    /* Buttons */
+    .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
+      font-weight: 600;
+      font-size: 0.86rem;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
       transition: all 0.15s ease;
-      touch-action: manipulation;
+      white-space: nowrap;
       user-select: none;
     }
 
-    button:disabled, .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    button:active, .btn:active {
-      transform: scale(0.98);
+    .btn:active {
+      transform: scale(0.97);
     }
 
     .btn-primary {
       background: var(--primary);
       color: #FFFFFF;
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
     }
-    .btn-primary:hover:not(:disabled) {
+    .btn-primary:hover {
       background: var(--primary-hover);
-    }
-
-    .btn-success {
-      background: #059669;
-      color: #FFFFFF;
-    }
-    .btn-success:hover:not(:disabled) {
-      background: #047857;
-    }
-
-    .btn-danger {
-      background: #DC2626;
-      color: #FFFFFF;
-    }
-    .btn-danger:hover:not(:disabled) {
-      background: #B91C1C;
     }
 
     .btn-secondary {
       background: var(--surface-elevated);
-      color: var(--text);
       border-color: var(--border);
+      color: var(--text);
     }
     .btn-secondary:hover:not(:disabled) {
-      background: #27364F;
-      border-color: #3F5170;
+      background: var(--surface-hover);
+      border-color: #3B4E6B;
+    }
+    .btn-secondary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
+    .btn-danger {
+      background: var(--danger-dark);
+      border-color: var(--danger);
+      color: #FFFFFF;
+    }
+    .btn-danger:hover {
+      background: #991B1B;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #FFFFFF;
+    }
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    /* Active Toggle States for Camera Tools */
     .btn-torch-active {
-      background: #CA8A04 !important;
-      color: #FFFFFF !important;
-      border-color: #EAB308 !important;
-      box-shadow: 0 0 12px rgba(234, 179, 8, 0.5);
+      background: #B45309 !important;
+      border-color: #F59E0B !important;
+      color: #FEF3C7 !important;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-boost-active {
+      background: #09878C !important;
+      border-color: #14B8A6 !important;
+      color: #CCFBF1 !important;
+      box-shadow: 0 0 12px rgba(20, 184, 166, 0.4);
+    }
+
+    .btn-zoom-active {
+      background: #3730A3 !important;
+      border-color: #6366F1 !important;
+      color: #E0E7FF !important;
+    }
+
+    /* Last Scan Result Banner */
+    .banner-container {
+      width: 100%;
+    }
+
+    #banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .banner-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .banner-status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+    }
+
+    .banner-tags-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .banner-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 8px;
+      background: var(--surface-elevated);
+      color: #94A3B8;
+      border: 1px solid var(--border);
+    }
+
+    .banner-value {
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      word-break: break-all;
+      color: #E2E8F0;
+    }
+
+    /* Banner States */
+    .banner-good {
+      border-color: var(--success-border) !important;
+      background: linear-gradient(135deg, rgba(6, 78, 59, 0.3), var(--surface)) !important;
+    }
+    .banner-good .banner-status-tag {
+      color: #34D399;
+    }
+    .banner-good .banner-value {
+      color: #A7F3D0;
+    }
+
+    .banner-bad {
+      border-color: var(--danger) !important;
+      background: linear-gradient(135deg, rgba(127, 29, 29, 0.3), var(--surface)) !important;
+    }
+    .banner-bad .banner-status-tag {
+      color: #F87171;
+    }
+    .banner-bad .banner-value {
+      color: #FECACA;
+    }
+
+    .banner-confirm {
+      border-color: var(--warning) !important;
+      background: linear-gradient(135deg, rgba(120, 53, 15, 0.35), var(--surface)) !important;
+    }
+    .banner-confirm .banner-status-tag {
+      color: #FBBF24;
+    }
+
+    .banner-confirm-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
     }
 
     /* Manual Entry Card */
@@ -444,7 +728,7 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 12px;
+      padding: 10px 12px;
     }
 
     .manual-form {
@@ -454,40 +738,33 @@
 
     .input-field {
       flex: 1;
-      height: 48px;
-      padding: 0 14px;
+      height: 42px;
+      padding: 0 12px;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       color: var(--text);
+      font-size: 0.95rem;
       font-family: var(--font-mono);
-      font-size: 1.05rem;
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
 
     .input-field:focus {
       border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
     }
 
-    .input-field::placeholder {
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      color: var(--text-dim);
-    }
-
-    /* Collapsible Sections (Settings & Batch Defaults) */
+    /* Collapsible Sections */
     .collapsible-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
-      transition: border-color 0.15s;
     }
 
     .collapsible-header {
-      padding: 12px 16px;
+      padding: 12px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -502,21 +779,12 @@
     }
 
     .collapsible-title {
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       font-weight: 600;
       color: #E5E7EB;
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .collapsible-badge {
-      font-size: 0.7rem;
-      background: #1E3A8A;
-      color: #93C5FD;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-weight: 600;
     }
 
     .collapsible-chevron {
@@ -555,13 +823,13 @@
     }
 
     .toggle-label {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: #D1D5DB;
     }
 
     .toggle-label span {
       display: block;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-dim);
     }
 
@@ -607,49 +875,6 @@
 
     input:checked + .slider:before {
       transform: translateX(20px);
-    }
-
-    /* Batch Defaults Grid */
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    @media (max-width: 480px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .form-group label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .form-group input, .form-group select {
-      height: 42px;
-      padding: 0 10px;
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      outline: none;
-    }
-
-    .form-group input:focus, .form-group select:focus {
-      border-color: var(--border-focus);
     }
 
     /* Scanned List Section */
@@ -698,96 +923,92 @@
     }
 
     .list-empty-state svg {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       stroke: var(--text-dim);
       margin-bottom: 8px;
-      opacity: 0.6;
+      opacity: 0.5;
     }
 
+    /* Scanned Item Card */
     .scan-item-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      transition: background 0.15s, border-color 0.15s;
+      gap: 10px;
+      transition: border-color 0.15s, background 0.15s;
     }
 
     .scan-item-card:hover {
-      background: var(--surface-card);
-      border-color: #374762;
+      border-color: #374A67;
+      background: #141E2F;
     }
 
     .scan-item-main {
-      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
       min-width: 0;
+      flex: 1;
     }
 
     .scan-item-serial-wrap {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 4px;
     }
 
     .scan-item-serial {
       font-family: var(--font-mono);
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 700;
-      color: #FFFFFF;
-      letter-spacing: 0.03em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      color: #F3F4F6;
+      word-break: break-all;
     }
 
     .scan-item-meta {
-      font-size: 0.75rem;
-      color: var(--text-dim);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      flex-wrap: wrap;
+      font-size: 0.72rem;
+      color: var(--text-dim);
     }
 
-    .source-tag {
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-size: 0.68rem;
+    .scan-item-pill {
+      font-size: 0.72rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .source-tag.camera {
-      background: #064E3B;
-      color: #6EE7B7;
-    }
-
-    .source-tag.manual {
-      background: #1E3A8A;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(37, 99, 235, 0.3);
       color: #93C5FD;
+    }
+
+    .scan-item-pill.pill-loc {
+      background: rgba(9, 135, 140, 0.15);
+      border-color: rgba(9, 135, 140, 0.35);
+      color: #5EEAD4;
     }
 
     .scan-item-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       flex-shrink: 0;
     }
 
     .action-btn {
-      min-height: 38px;
-      height: 38px;
-      width: 38px;
-      padding: 0;
-      border-radius: var(--radius-sm);
       background: var(--surface-elevated);
       border: 1px solid var(--border);
       color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
       display: grid;
       place-items: center;
       cursor: pointer;
@@ -796,7 +1017,8 @@
 
     .action-btn:hover {
       color: #FFFFFF;
-      background: #27364F;
+      background: #2D3D56;
+      border-color: #4B638A;
     }
 
     .action-btn.delete-btn:hover {
@@ -806,8 +1028,8 @@
     }
 
     .action-btn svg {
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       stroke: currentColor;
     }
 
@@ -827,7 +1049,7 @@
     }
 
     .footer-content {
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: 2fr 1fr 1fr;
@@ -845,7 +1067,7 @@
       }
     }
 
-    /* Modal Dialog */
+    /* Modal Dialogs */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -867,7 +1089,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       width: 100%;
-      max-width: 440px;
+      max-width: 460px;
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -878,6 +1100,12 @@
     .modal-card h3 {
       font-size: 1.1rem;
       color: #FFFFFF;
+    }
+
+    .modal-form-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .modal-actions {
@@ -913,8 +1141,8 @@
           </svg>
         </div>
         <div class="brand-text">
-          <h1>Serial Scanner</h1>
-          <span>Assets Import Companion</span>
+          <h1>Serial Scanner <span class="brand-badge">PRO v2</span></h1>
+          <span>Assets Management Companion</span>
         </div>
       </div>
       <div class="header-actions">
@@ -937,21 +1165,153 @@
   </header>
 
   <main>
+    <!-- Upfront Asset & Location Preset Card -->
+    <section class="preset-card">
+      <div class="preset-card-header">
+        <div class="preset-title">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          Active Scanning Batch
+        </div>
+        <div class="preset-status-tag" id="activeBatchSummary">Head Office • Epson Printer</div>
+      </div>
+
+      <div class="preset-grid">
+        <!-- Location Picker -->
+        <div class="preset-field">
+          <label for="selectLocation">
+            <span>📍 Company Location / Branch</span>
+          </label>
+          <div class="preset-input-wrap">
+            <select id="selectLocation">
+              <optgroup label="🏢 Corporate & Main Sites">
+                <option value="Head Office" selected>🏢 Head Office</option>
+                <option value="IT Workshop / Lab">🔧 IT Workshop / Repair Lab</option>
+                <option value="Server Room / Data Centre">🖧 Server Room / Data Centre</option>
+                <option value="Msasa Central Warehouse">📦 Msasa Central Warehouse</option>
+              </optgroup>
+              <optgroup label="🌍 Northern Region (Harare & Mashonaland)">
+                <option value="Harare Main Branch">Harare - Main Branch</option>
+                <option value="Harare Graniteside Depot">Harare - Graniteside Depot</option>
+                <option value="Harare Southerton">Harare - Southerton Depot</option>
+                <option value="Harare Avondale">Harare - Avondale</option>
+                <option value="Harare Borrowdale">Harare - Borrowdale</option>
+                <option value="Harare Westgate">Harare - Westgate</option>
+                <option value="Chitungwiza Branch">Chitungwiza Branch</option>
+                <option value="Mutare Main Branch">Mutare Main Branch</option>
+                <option value="Mutare Depot">Mutare Depot</option>
+                <option value="Bindura Branch">Bindura Branch</option>
+                <option value="Marondera Branch">Marondera Branch</option>
+                <option value="Chinhoyi Branch">Chinhoyi Branch</option>
+              </optgroup>
+              <optgroup label="🌍 Southern Region (Bulawayo & Midlands)">
+                <option value="Bulawayo Main Branch">Bulawayo - Main Branch</option>
+                <option value="Bulawayo Belmont Depot">Bulawayo - Belmont Depot</option>
+                <option value="Bulawayo Kelvin Industrial">Bulawayo - Kelvin Industrial</option>
+                <option value="Gweru Main Branch">Gweru - Main Branch</option>
+                <option value="Gweru Depot">Gweru - Depot</option>
+                <option value="Kwekwe Branch">Kwekwe Branch</option>
+                <option value="Masvingo Branch">Masvingo Branch</option>
+                <option value="Victoria Falls Branch">Victoria Falls Branch</option>
+                <option value="Zvishavane Branch">Zvishavane Branch</option>
+              </optgroup>
+              <optgroup label="➕ Custom Location" id="customLocationOptGroup">
+                <option value="__NEW__">+ Add Custom Location...</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <!-- Asset Name Picker / Input -->
+        <div class="preset-field">
+          <label for="inputAssetName">
+            <span>📦 Asset Name & Model</span>
+          </label>
+          <div class="preset-input-wrap">
+            <input 
+              type="text" 
+              id="inputAssetName" 
+              list="assetNameList" 
+              value="Epson printer" 
+              placeholder="e.g. Epson printer, Desktop PC..." 
+              autocomplete="off"
+            >
+            <datalist id="assetNameList">
+              <!-- Printers -->
+              <option value="Epson printer">
+              <option value="Epson EcoTank L3250">
+              <option value="Epson WorkForce Pro">
+              <option value="HP LaserJet Pro">
+              <option value="Canon Multifunction Printer">
+              <!-- Computers -->
+              <option value="Desktop PC">
+              <option value="Dell OptiPlex Desktop">
+              <option value="HP EliteDesk PC">
+              <option value="Lenovo ThinkCentre PC">
+              <option value="Laptop (Dell Latitude)">
+              <option value="Laptop (HP ProBook)">
+              <option value="Laptop (Lenovo ThinkPad)">
+              <!-- Displays & Networking -->
+              <option value="Dell 24-inch Monitor">
+              <option value="HP 24-inch Monitor">
+              <option value="Cisco Catalyst Switch">
+              <option value="MikroTik Router">
+              <option value="APC Smart-UPS 1500VA">
+              <option value="Mecer 2000VA UPS">
+              <option value="Barcode Scanner Gun">
+            </datalist>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick 1-Tap Preset Chips -->
+      <div class="quick-chips-wrap">
+        <span class="quick-chips-label">Quick:</span>
+        <button class="chip-btn chip-active" onclick="setPresetAsset('Epson printer', 'Printer / Copier')">🖨️ Epson Printer</button>
+        <button class="chip-btn" onclick="setPresetAsset('Desktop PC', 'Desktop PC / Computer')">🖥️ Desktop PC</button>
+        <button class="chip-btn" onclick="setPresetAsset('HP LaserJet', 'Printer / Copier')">🖨️ HP LaserJet</button>
+        <button class="chip-btn" onclick="setPresetAsset('Laptop', 'Laptop / Notebook')">💻 Laptop</button>
+        <button class="chip-btn" onclick="setPresetAsset('Monitor', 'Monitor / Display')">🖥️ Monitor</button>
+        <button class="chip-btn" onclick="setPresetAsset('APC UPS', 'Power / UPS')">🔌 UPS</button>
+        <button class="chip-btn" onclick="setPresetAsset('Cisco Switch', 'Networking')">🖧 Switch</button>
+      </div>
+    </section>
+
     <!-- Camera Viewport Card -->
     <section class="camera-card" id="cameraCard">
       <div class="camera-viewport-wrap">
         <div id="reader"></div>
+        <div id="screenLightAssist"></div>
+
+        <!-- Real-time HUD Badges -->
+        <div class="camera-hud-top">
+          <div class="hud-badge hud-engine" id="hudEngineBadge">
+            <span class="hud-engine-dot"></span>
+            <span id="hudEngineText">Ready</span>
+          </div>
+          <div class="hud-badge" id="hudTargetBadge">
+            📍 <span id="hudTargetText">Head Office</span>
+          </div>
+        </div>
+
+        <!-- Scan Reticle -->
         <div class="scan-reticle">
           <div class="scan-laser"></div>
         </div>
+
+        <!-- Idle Screen -->
         <div class="camera-idle-view" id="cameraIdleView">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
             <circle cx="12" cy="13" r="4"></circle>
           </svg>
-          <p>Camera is currently standby. Press <strong>Start Camera</strong> to begin scanning barcode labels.</p>
+          <p>Camera ready. Tap <strong>Start Camera</strong> to scan barcodes & QR codes with low-light boost.</p>
         </div>
       </div>
+
+      <!-- Camera Action Controls -->
       <div class="camera-controls">
         <button id="btnStart" class="btn btn-primary">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
@@ -959,11 +1319,37 @@
           </svg>
           <span id="btnStartText">Start Camera</span>
         </button>
-        <button id="btnTorch" class="btn btn-secondary" disabled>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+
+        <button id="btnTorch" class="btn btn-secondary" disabled title="Toggle Flashlight / Torch">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6l-6-4-6 4v3a6 6 0 0 0 6 6v7h4v-7a6 6 0 0 0 6-6V6z"></path>
           </svg>
           <span id="btnTorchText">Torch</span>
+        </button>
+
+        <button id="btnLowLight" class="btn btn-secondary" title="Enhance contrast in dim / poorly lit rooms">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <span id="btnLowLightText">Boost</span>
+        </button>
+
+        <button id="btnZoom" class="btn btn-secondary" disabled title="Toggle 1x / 2x camera zoom">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="11" y1="8" x2="11" y2="14"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+          <span id="btnZoomText">1x</span>
         </button>
       </div>
     </section>
@@ -971,15 +1357,21 @@
     <!-- Last Scan Banner Component -->
     <div class="banner-container">
       <div id="banner">
-        <div class="banner-status-tag" id="bannerTag">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-          <span id="bannerTagText">Ready</span>
+        <div class="banner-header">
+          <div class="banner-status-tag" id="bannerTag">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span id="bannerTagText">Ready</span>
+          </div>
+          <div class="banner-tags-row" id="bannerTagsRow">
+            <span class="banner-pill" id="bannerAssetTag">Epson printer</span>
+            <span class="banner-pill" id="bannerLocTag">Head Office</span>
+          </div>
         </div>
-        <div class="banner-value" id="bannerValue">No serial scanned yet</div>
+        <div class="banner-value" id="bannerValue">Point camera at serial barcode label</div>
         <div class="banner-confirm-actions" id="bannerConfirmActions" style="display: none;">
           <button id="btnConfirmSave" class="btn btn-success" style="flex:1;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -987,7 +1379,7 @@
           </button>
           <button id="btnConfirmDiscard" class="btn btn-danger" style="flex:1;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            Rescan / Discard
+            Discard
           </button>
         </div>
       </div>
@@ -1029,6 +1421,16 @@
         <div class="settings-grid">
           <div class="toggle-row">
             <div class="toggle-label">
+              Hardware Barcode Acceleration
+              <span>Uses device ML BarcodeDetector for instant low-light reads</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggleHardwareAccel" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label">
               Confirm each scan mode
               <span>Pauses for confirmation before saving candidate barcode</span>
             </div>
@@ -1067,63 +1469,10 @@
               <span class="slider"></span>
             </label>
           </div>
-          <div class="form-group" style="margin-top: 4px;">
+          <div class="preset-field" style="margin-top: 4px;">
             <label for="inputMinLength">Minimum Serial Length (Filters Junk/Noise)</label>
             <input type="number" id="inputMinLength" value="4" min="1" max="50">
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Collapsible Batch Defaults Panel (Step 9) -->
-    <section class="collapsible-card" id="cardDefaults">
-      <div class="collapsible-header" onclick="toggleCollapsible('cardDefaults')">
-        <div class="collapsible-title">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-          </svg>
-          Batch Defaults (.xlsx Export)
-          <span class="collapsible-badge" id="defaultsStatusBadge">Optional</span>
-        </div>
-        <svg class="collapsible-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-      </div>
-      <div class="collapsible-content">
-        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 12px;">
-          Values specified here will be automatically populated into their respective columns (Asset Name, Asset Type, Shop, Complex, Condition, Purchase Date) for every row in the exported Excel spreadsheet.
-        </p>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="defAssetName">Asset Name (Col A)</label>
-            <input type="text" id="defAssetName" placeholder="e.g. DELL LATITUDE 5420">
-          </div>
-          <div class="form-group">
-            <label for="defAssetType">Asset Type (Col C)</label>
-            <input type="text" id="defAssetType" placeholder="e.g. NETWORK / POS / PRINTER">
-          </div>
-          <div class="form-group">
-            <label for="defShop">Shop (Col H)</label>
-            <input type="text" id="defShop" placeholder="e.g. CHICKEN INN">
-          </div>
-          <div class="form-group">
-            <label for="defComplex">Complex (Col I)</label>
-            <input type="text" id="defComplex" placeholder="e.g. TV CITY">
-          </div>
-          <div class="form-group">
-            <label for="defCondition">Condition (Col J)</label>
-            <input type="text" id="defCondition" placeholder="e.g. EXCELLENT / NEW">
-          </div>
-          <div class="form-group">
-            <label for="defPurchaseDate">Purchase Date (Col G)</label>
-            <input type="date" id="defPurchaseDate">
-          </div>
-        </div>
-        <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
-          <button id="btnClearDefaults" class="btn btn-secondary" style="min-height: 38px; height: 38px; font-size: 0.82rem;">Clear Defaults</button>
-          <button id="btnSaveDefaults" class="btn btn-primary" style="min-height: 38px; height: 38px; font-size: 0.82rem;">Save Defaults</button>
         </div>
       </div>
     </section>
@@ -1132,7 +1481,7 @@
     <section>
       <div class="list-section-header">
         <div class="list-title">
-          <span>Scanned Items</span>
+          <span>Scanned Asset Items</span>
           <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: normal;">(Newest first)</span>
         </div>
         <input type="text" id="listFilter" class="list-filter-input" placeholder="Filter serials...">
@@ -1188,13 +1537,43 @@
     </div>
   </div>
 
+  <!-- Custom Location Modal -->
+  <div class="modal-overlay" id="customLocationModal">
+    <div class="modal-card">
+      <h3 style="display:flex; align-items:center; gap:8px;">
+        <span>📍 Add Custom Location</span>
+      </h3>
+      <p style="font-size: 0.85rem; color: #94A3B8;">
+        Enter a new branch, office, or depot name. It will be saved into your company locations list.
+      </p>
+      <div class="preset-field">
+        <label for="newLocationInput">Location Name</label>
+        <input type="text" id="newLocationInput" placeholder="e.g. Masvingo Depot, Head Office 2nd Floor">
+      </div>
+      <div class="modal-actions">
+        <button id="btnCancelCustomLocation" class="btn btn-secondary">Cancel</button>
+        <button id="btnSaveCustomLocation" class="btn btn-primary">Save Location</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Edit Item Modal -->
   <div class="modal-overlay" id="editModal">
     <div class="modal-card">
-      <h3>Edit Serial Number</h3>
-      <div class="form-group">
-        <label for="editInput">Serial Number</label>
-        <input type="text" id="editInput" class="input-field" style="font-family: var(--font-mono);">
+      <h3>Edit Scanned Asset</h3>
+      <div class="modal-form-grid">
+        <div class="preset-field">
+          <label for="editSerialInput">Serial Number</label>
+          <input type="text" id="editSerialInput" style="font-family: var(--font-mono);">
+        </div>
+        <div class="preset-field">
+          <label for="editAssetNameInput">Asset Name</label>
+          <input type="text" id="editAssetNameInput">
+        </div>
+        <div class="preset-field">
+          <label for="editLocationInput">Location</label>
+          <input type="text" id="editLocationInput">
+        </div>
       </div>
       <p id="editError" style="font-size: 0.8rem; color: #F87171; display: none;"></p>
       <div class="modal-actions">
@@ -1209,9 +1588,10 @@
     /* ==========================================================================
        1. Constants, Storage Keys & Global State
        ========================================================================== */
-    const STORAGE_KEY = 'serialScanner.v1';
-    const DEFAULTS_KEY = 'serialScanner.defaults';
+    const STORAGE_KEY = 'serialScanner.v2';
+    const CUSTOM_LOCATIONS_KEY = 'serialScanner.customLocations';
     const SETTINGS_KEY = 'serialScanner.settings';
+    const ACTIVE_BATCH_KEY = 'serialScanner.activeBatch';
 
     // Exact headers from assets_import_template.xlsx (13 columns in order)
     const HEADERS = [
@@ -1222,17 +1602,26 @@
       'Dependency1',        // Col E (4)
       'Dependency2',        // Col F (5)
       'Purchase Date',      // Col G (6)
-      'Shop',               // Col H (7)
-      'Complex',            // Col I (8)
+      'Shop',               // Col H (7) - Company Location
+      'Complex',            // Col I (8) - Region / Complex
       'Condition',          // Col J (9)
       'Expected Life Span', // Col K (10)
       'IP Address',         // Col L (11)
       'Value'               // Col M (12)
     ];
-    const SERIAL_COL = 3; // Column D (0-indexed)
+    const SERIAL_COL = 3;
 
     let items = [];
+    let customLocations = [];
+    let activeBatch = {
+      location: 'Head Office',
+      assetName: 'Epson printer',
+      assetType: 'Printer / Copier',
+      condition: 'Good'
+    };
+
     let settings = {
+      hardwareAccel: true,
       confirmScan: false,
       upperCase: true,
       trimSpaces: true,
@@ -1240,27 +1629,23 @@
       minLen: 4,
       sound: true
     };
-    let batchDefaults = {
-      assetName: '',
-      assetType: '',
-      shop: '',
-      complex: '',
-      condition: '',
-      purchaseDate: ''
-    };
 
     // Scanner state
     let scanner = null;
     let scanning = false;
     let torchOn = false;
+    let lowLightBoostOn = false;
+    let currentZoom = 1;
     let lastCode = '';
     let lastTime = 0;
     let candidatePending = null;
     let editingItemId = null;
     let audioCtx = null;
+    let nativeDetector = null;
+    let nativeAnimFrameId = null;
 
     /* ==========================================================================
-       2. Storage & Settings Persistence
+       2. Storage & Persistence
        ========================================================================== */
     function load() {
       try {
@@ -1269,17 +1654,39 @@
         items = [];
       }
 
+      // If migrating from v1
+      if (!items.length) {
+        try {
+          const v1Items = JSON.parse(localStorage.getItem('serialScanner.v1'));
+          if (Array.isArray(v1Items) && v1Items.length) {
+            items = v1Items.map(i => ({
+              ...i,
+              assetName: i.assetName || 'IT Asset',
+              location: i.location || 'Head Office',
+              assetType: i.assetType || 'Equipment'
+            }));
+          }
+        } catch (e) {}
+      }
+
       try {
-        const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (savedSettings) {
-          settings = { ...settings, ...savedSettings };
+        const savedCustomLocs = JSON.parse(localStorage.getItem(CUSTOM_LOCATIONS_KEY));
+        if (Array.isArray(savedCustomLocs)) {
+          customLocations = savedCustomLocs;
         }
       } catch (e) {}
 
       try {
-        const savedDefaults = JSON.parse(localStorage.getItem(DEFAULTS_KEY));
-        if (savedDefaults) {
-          batchDefaults = { ...batchDefaults, ...savedDefaults };
+        const savedBatch = JSON.parse(localStorage.getItem(ACTIVE_BATCH_KEY));
+        if (savedBatch) {
+          activeBatch = { ...activeBatch, ...savedBatch };
+        }
+      } catch (e) {}
+
+      try {
+        const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+        if (savedSettings) {
+          settings = { ...settings, ...savedSettings };
         }
       } catch (e) {}
     }
@@ -1288,12 +1695,16 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
 
-    function saveSettings() {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    function saveBatch() {
+      localStorage.setItem(ACTIVE_BATCH_KEY, JSON.stringify(activeBatch));
     }
 
-    function saveDefaultsToStorage() {
-      localStorage.setItem(DEFAULTS_KEY, JSON.stringify(batchDefaults));
+    function saveCustomLocations() {
+      localStorage.setItem(CUSTOM_LOCATIONS_KEY, JSON.stringify(customLocations));
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     }
 
     /* ==========================================================================
@@ -1311,7 +1722,7 @@
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration / 1000);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -1333,15 +1744,11 @@
     function flash(type) {
       const overlay = document.getElementById('flashOverlay');
       if (!overlay) return;
-      if (type === 'good') {
-        overlay.style.backgroundColor = 'rgba(16, 185, 129, 0.25)';
-      } else {
-        overlay.style.backgroundColor = 'rgba(239, 68, 68, 0.3)';
-      }
+      overlay.style.backgroundColor = type === 'good' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.35)';
       overlay.style.opacity = '1';
       setTimeout(() => {
         overlay.style.opacity = '0';
-      }, 200);
+      }, 180);
     }
 
     function showBanner(text, type = 'ready', extra = {}) {
@@ -1349,9 +1756,14 @@
       const tagText = document.getElementById('bannerTagText');
       const bannerVal = document.getElementById('bannerValue');
       const confirmActions = document.getElementById('bannerConfirmActions');
+      const bannerAssetTag = document.getElementById('bannerAssetTag');
+      const bannerLocTag = document.getElementById('bannerLocTag');
 
       banner.className = '';
       confirmActions.style.display = 'none';
+
+      bannerAssetTag.textContent = activeBatch.assetName || 'Asset';
+      bannerLocTag.textContent = activeBatch.location || 'Head Office';
 
       if (type === 'good') {
         banner.className = 'banner-good';
@@ -1359,7 +1771,7 @@
         bannerVal.textContent = text;
       } else if (type === 'bad') {
         banner.className = 'banner-bad';
-        tagText.textContent = extra.tag || 'Rejected / Notice';
+        tagText.textContent = extra.tag || 'Notice';
         bannerVal.textContent = text;
       } else if (type === 'confirm') {
         banner.className = 'banner-confirm';
@@ -1368,7 +1780,7 @@
         confirmActions.style.display = 'flex';
       } else {
         tagText.textContent = 'Scanner Ready';
-        bannerVal.textContent = text || 'Point camera at barcode or type serial';
+        bannerVal.textContent = text || 'Point camera at serial barcode label';
       }
     }
 
@@ -1395,12 +1807,20 @@
       // Duplicate check (case-insensitive)
       const existing = items.find(i => i.serial.toUpperCase() === serial.toUpperCase());
       if (existing) {
-        return { ok: false, reason: 'Duplicate', serial };
+        return { 
+          ok: false, 
+          reason: `Duplicate (Already scanned for ${existing.assetName} at ${existing.location})`, 
+          serial 
+        };
       }
 
       const item = {
         id: Date.now() + '.' + Math.random().toString(36).substr(2, 8),
         serial,
+        assetName: activeBatch.assetName || 'IT Asset',
+        location: activeBatch.location || 'Head Office',
+        assetType: activeBatch.assetType || 'Equipment',
+        condition: activeBatch.condition || 'Good',
         scannedAt: new Date().toISOString(),
         source
       };
@@ -1408,7 +1828,7 @@
       items.unshift(item);
       save();
       render();
-      return { ok: true, serial };
+      return { ok: true, serial, item };
     }
 
     function deleteItem(id) {
@@ -1427,7 +1847,7 @@
       const removed = items.shift();
       save();
       render();
-      showBanner(`Undone: ${removed.serial}`, 'ready');
+      showBanner(`Undone: ${removed.serial} (${removed.assetName})`, 'ready');
       beep(440);
     }
 
@@ -1439,21 +1859,32 @@
     }
 
     /* ==========================================================================
-       5. Rendering the UI (Counter, List, Filtering)
+       5. Rendering the UI
        ========================================================================== */
     function render() {
       // 1. Counter
       const countEl = document.getElementById('countDisplay');
       if (countEl) countEl.textContent = items.length;
 
-      // 2. List
+      // 2. HUD Badges
+      const hudTarget = document.getElementById('hudTargetText');
+      if (hudTarget) hudTarget.textContent = `${activeBatch.location} • ${activeBatch.assetName}`;
+
+      const summaryTag = document.getElementById('activeBatchSummary');
+      if (summaryTag) summaryTag.textContent = `${activeBatch.location} • ${activeBatch.assetName}`;
+
+      // 3. List
       const listEl = document.getElementById('list');
       const filterVal = (document.getElementById('listFilter')?.value || '').trim().toLowerCase();
 
       listEl.innerHTML = '';
 
       const filteredItems = filterVal 
-        ? items.filter(i => i.serial.toLowerCase().includes(filterVal))
+        ? items.filter(i => 
+            i.serial.toLowerCase().includes(filterVal) ||
+            (i.assetName && i.assetName.toLowerCase().includes(filterVal)) ||
+            (i.location && i.location.toLowerCase().includes(filterVal))
+          )
         : items;
 
       if (!filteredItems.length) {
@@ -1470,7 +1901,6 @@
         return;
       }
 
-      // Efficient DOM rendering using textContent for all user strings
       filteredItems.forEach(item => {
         const card = document.createElement('div');
         card.className = 'scan-item-card';
@@ -1483,21 +1913,28 @@
 
         const serialSpan = document.createElement('span');
         serialSpan.className = 'scan-item-serial';
-        serialSpan.textContent = item.serial; // Protect against odd barcode chars
+        serialSpan.textContent = item.serial;
         serialWrap.appendChild(serialSpan);
 
         const metaDiv = document.createElement('div');
         metaDiv.className = 'scan-item-meta';
 
-        const sourceTag = document.createElement('span');
-        sourceTag.className = `source-tag ${item.source}`;
-        sourceTag.textContent = item.source === 'camera' ? 'Camera' : 'Manual';
+        // Asset Name Pill
+        const assetPill = document.createElement('span');
+        assetPill.className = 'scan-item-pill';
+        assetPill.textContent = `📦 ${item.assetName || 'Asset'}`;
+        metaDiv.appendChild(assetPill);
 
+        // Location Pill
+        const locPill = document.createElement('span');
+        locPill.className = 'scan-item-pill pill-loc';
+        locPill.textContent = `📍 ${item.location || 'Head Office'}`;
+        metaDiv.appendChild(locPill);
+
+        // Time
         const timeSpan = document.createElement('span');
         const timeObj = new Date(item.scannedAt);
-        timeSpan.textContent = isNaN(timeObj) ? '' : timeObj.toLocaleTimeString();
-
-        metaDiv.appendChild(sourceTag);
+        timeSpan.textContent = isNaN(timeObj) ? '' : timeObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         metaDiv.appendChild(timeSpan);
 
         mainDiv.appendChild(serialWrap);
@@ -1523,7 +1960,7 @@
         // Edit button
         const editBtn = document.createElement('button');
         editBtn.className = 'action-btn';
-        editBtn.title = 'Edit serial';
+        editBtn.title = 'Edit asset details';
         editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
         editBtn.onclick = (e) => {
           e.stopPropagation();
@@ -1551,53 +1988,148 @@
     }
 
     /* ==========================================================================
-       6. Camera Scanning Setup (html5-qrcode 2.3.8)
+       6. High-Performance Dual Scanner Engine (Native ML + Html5Qrcode)
        ========================================================================== */
-    function initScanner() {
-      if (typeof Html5Qrcode === 'undefined') {
-        console.warn('Html5Qrcode library not yet loaded');
-        return;
+    function getActiveVideoTrack() {
+      const video = document.querySelector('#reader video');
+      if (video && video.srcObject) {
+        const tracks = video.srcObject.getVideoTracks();
+        if (tracks && tracks.length > 0) return tracks[0];
       }
-      if (!scanner) {
-        scanner = new Html5Qrcode('reader');
+      return null;
+    }
+
+    async function initNativeDetector() {
+      if ('BarcodeDetector' in window && settings.hardwareAccel) {
+        try {
+          const supported = await BarcodeDetector.getSupportedFormats();
+          if (supported && supported.length > 0) {
+            nativeDetector = new BarcodeDetector({ formats: supported });
+            document.getElementById('hudEngineText').textContent = 'Native ML Active (High Speed)';
+            return true;
+          }
+        } catch (e) {
+          console.warn('Native BarcodeDetector not available:', e);
+        }
+      }
+      nativeDetector = null;
+      document.getElementById('hudEngineText').textContent = 'ZXing HD Active';
+      return false;
+    }
+
+    function runNativeDetectorLoop() {
+      if (!scanning || !nativeDetector) return;
+      const video = document.querySelector('#reader video');
+      if (video && video.readyState >= 2) {
+        nativeDetector.detect(video).then(barcodes => {
+          if (barcodes && barcodes.length > 0) {
+            for (const b of barcodes) {
+              if (b.rawValue) {
+                onScanSuccess(b.rawValue);
+                break;
+              }
+            }
+          }
+        }).catch(() => {});
+      }
+      if (scanning) {
+        nativeAnimFrameId = requestAnimationFrame(runNativeDetectorLoop);
       }
     }
 
     async function startScan() {
-      initScanner();
-      if (!scanner) {
+      if (typeof Html5Qrcode === 'undefined') {
         showBanner('Scanner library not loaded. Check connection.', 'bad');
         beep(220);
         return;
       }
 
+      if (!scanner) {
+        scanner = new Html5Qrcode('reader');
+      }
+
+      await initNativeDetector();
+
+      // Optimal 1080p camera configuration with dynamic responsive qrbox
       const config = {
-        fps: 10,
-        qrbox: { width: 300, height: 120 },
+        fps: 25,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          // Wide rectangular box perfect for 1D asset serial numbers and 2D QR codes
+          const w = Math.floor(viewfinderWidth * 0.88);
+          const h = Math.floor(Math.min(viewfinderHeight * 0.65, 260));
+          return { width: Math.max(w, 240), height: Math.max(h, 120) };
+        },
         formatsToSupport: [
           Html5QrcodeSupportedFormats.CODE_128,
           Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.CODE_93,
           Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
           Html5QrcodeSupportedFormats.ITF,
           Html5QrcodeSupportedFormats.QR_CODE,
           Html5QrcodeSupportedFormats.DATA_MATRIX
         ],
-        experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: settings.hardwareAccel
+        }
+      };
+
+      const cameraConstraints = {
+        facingMode: 'environment',
+        width: { min: 1280, ideal: 1920 },
+        height: { min: 720, ideal: 1080 }
       };
 
       try {
         await scanner.start(
-          { facingMode: 'environment' },
+          cameraConstraints,
           config,
           onScanSuccess,
-          onScanError
+          () => {} // suppress frame miss noise
         );
+
         scanning = true;
         document.getElementById('cameraCard').classList.add('camera-active');
         document.getElementById('cameraIdleView').style.display = 'none';
         document.getElementById('btnStartText').textContent = 'Stop Camera';
         document.getElementById('btnStart').classList.replace('btn-primary', 'btn-danger');
-        document.getElementById('btnTorch').disabled = false;
+
+        // Check camera track capabilities
+        setTimeout(() => {
+          const track = getActiveVideoTrack();
+          if (track && track.getCapabilities) {
+            const caps = track.getCapabilities();
+            // Enable Torch if supported
+            const torchBtn = document.getElementById('btnTorch');
+            if ('torch' in caps || caps.fillLightMode) {
+              torchBtn.disabled = false;
+            } else {
+              // Screen light assist fallback
+              torchBtn.disabled = false;
+            }
+
+            // Enable Zoom if supported
+            const zoomBtn = document.getElementById('btnZoom');
+            if (caps.zoom) {
+              zoomBtn.disabled = false;
+            }
+          } else {
+            document.getElementById('btnTorch').disabled = false;
+          }
+
+          // Apply low-light contrast if enabled
+          if (lowLightBoostOn) {
+            applyLowLightBoost();
+          }
+
+          // Kick off native detection loop if supported
+          if (nativeDetector) {
+            runNativeDetectorLoop();
+          }
+        }, 500);
+
         showBanner('Camera active. Align barcode in box.', 'ready');
       } catch (err) {
         console.error('Camera start error:', err);
@@ -1607,6 +2139,11 @@
     }
 
     async function stopScan() {
+      if (nativeAnimFrameId) {
+        cancelAnimationFrame(nativeAnimFrameId);
+        nativeAnimFrameId = null;
+      }
+
       if (scanning && scanner) {
         try {
           await scanner.stop();
@@ -1617,49 +2154,138 @@
         document.getElementById('cameraIdleView').style.display = 'flex';
         document.getElementById('btnStartText').textContent = 'Start Camera';
         document.getElementById('btnStart').classList.replace('btn-danger', 'btn-primary');
+
         const torchBtn = document.getElementById('btnTorch');
         torchBtn.disabled = true;
         torchBtn.classList.remove('btn-torch-active');
         document.getElementById('btnTorchText').textContent = 'Torch';
+        document.getElementById('screenLightAssist').style.display = 'none';
+
+        const zoomBtn = document.getElementById('btnZoom');
+        zoomBtn.disabled = true;
       }
     }
 
+    /* ==========================================================================
+       7. Torch, Low-Light Booster & Zoom Controls
+       ========================================================================== */
     async function toggleTorch() {
-      if (!scanning || !scanner) return;
-      try {
-        torchOn = !torchOn;
-        await scanner.applyVideoConstraints({
-          advanced: [{ torch: torchOn }]
-        });
-        const torchBtn = document.getElementById('btnTorch');
-        if (torchOn) {
-          torchBtn.classList.add('btn-torch-active');
-          document.getElementById('btnTorchText').textContent = 'Torch ON';
-          beep(600, 60);
-        } else {
-          torchBtn.classList.remove('btn-torch-active');
-          document.getElementById('btnTorchText').textContent = 'Torch';
-          beep(400, 60);
+      if (!scanning) return;
+      torchOn = !torchOn;
+      const torchBtn = document.getElementById('btnTorch');
+      const track = getActiveVideoTrack();
+      let hardwareSuccess = false;
+
+      // 1. Direct MediaStreamTrack constraint
+      if (track) {
+        try {
+          await track.applyConstraints({
+            advanced: [{ torch: torchOn }]
+          });
+          hardwareSuccess = true;
+        } catch (e) {
+          console.warn('Track torch constraint failed:', e);
         }
-      } catch (e) {
-        showBanner('Torch not supported on this device/browser', 'bad');
-        torchOn = false;
       }
+
+      // 2. Html5Qrcode fallback method
+      if (!hardwareSuccess && scanner && typeof scanner.applyVideoConstraints === 'function') {
+        try {
+          await scanner.applyVideoConstraints({
+            advanced: [{ torch: torchOn }]
+          });
+          hardwareSuccess = true;
+        } catch (e) {}
+      }
+
+      // 3. Screen light assist fallback if hardware torch is rejected
+      const screenAssist = document.getElementById('screenLightAssist');
+      if (torchOn) {
+        torchBtn.classList.add('btn-torch-active');
+        document.getElementById('btnTorchText').textContent = 'Torch ON';
+        beep(600, 60);
+        if (!hardwareSuccess) {
+          screenAssist.style.display = 'block';
+          showBanner('Torch ON (Screen Light Assist Active)', 'ready');
+        } else {
+          showBanner('Flashlight ON', 'ready');
+        }
+      } else {
+        torchBtn.classList.remove('btn-torch-active');
+        document.getElementById('btnTorchText').textContent = 'Torch';
+        screenAssist.style.display = 'none';
+        beep(400, 60);
+      }
+    }
+
+    function applyLowLightBoost() {
+      const video = document.querySelector('#reader video');
+      if (video) {
+        if (lowLightBoostOn) {
+          // Sharp high contrast + boosted brightness for dim lighting
+          video.style.filter = 'contrast(1.6) brightness(1.35) saturate(0.7)';
+        } else {
+          video.style.filter = '';
+        }
+      }
+
+      const track = getActiveVideoTrack();
+      if (track && track.getCapabilities) {
+        const caps = track.getCapabilities();
+        if (caps.exposureCompensation) {
+          const exp = lowLightBoostOn ? caps.exposureCompensation.max : caps.exposureCompensation.min;
+          track.applyConstraints({ advanced: [{ exposureCompensation: exp }] }).catch(() => {});
+        }
+      }
+    }
+
+    function toggleLowLightBoost() {
+      lowLightBoostOn = !lowLightBoostOn;
+      const boostBtn = document.getElementById('btnLowLight');
+      applyLowLightBoost();
+
+      if (lowLightBoostOn) {
+        boostBtn.classList.add('btn-boost-active');
+        document.getElementById('btnLowLightText').textContent = 'Boost ON';
+        showBanner('Low-Light Boost Active (High Contrast)', 'ready');
+        beep(750, 70);
+      } else {
+        boostBtn.classList.remove('btn-boost-active');
+        document.getElementById('btnLowLightText').textContent = 'Boost';
+        showBanner('Low-Light Boost Disabled', 'ready');
+        beep(450, 60);
+      }
+    }
+
+    async function toggleZoom() {
+      const track = getActiveVideoTrack();
+      if (!track || !track.getCapabilities) return;
+      const caps = track.getCapabilities();
+      if (!caps.zoom) return;
+
+      currentZoom = currentZoom === 1 ? Math.min(2, caps.zoom.max || 2) : 1;
+      try {
+        await track.applyConstraints({ advanced: [{ zoom: currentZoom }] });
+        const zoomBtn = document.getElementById('btnZoom');
+        document.getElementById('btnZoomText').textContent = currentZoom + 'x';
+        if (currentZoom > 1) {
+          zoomBtn.classList.add('btn-zoom-active');
+        } else {
+          zoomBtn.classList.remove('btn-zoom-active');
+        }
+        beep(600, 50);
+      } catch (e) {}
     }
 
     function onScanSuccess(text) {
       const now = Date.now();
-      // 2.5 second debounce on identical barcode
-      if (text === lastCode && (now - lastTime < 2500)) {
+      // 2.2 second debounce on identical barcode
+      if (text === lastCode && (now - lastTime < 2200)) {
         return;
       }
       lastCode = text;
       lastTime = now;
       handleCandidate(text);
-    }
-
-    function onScanError(errorMessage) {
-      // Normal per-frame parse misses, ignore to keep console clean
     }
 
     function handleCandidate(text) {
@@ -1676,13 +2302,47 @@
         } else {
           beep(220);
           flash('bad');
-          showBanner(r.reason + (r.serial ? ': ' + r.serial : ''), 'bad');
+          showBanner(r.reason, 'bad');
         }
       }
     }
 
     /* ==========================================================================
-       7. Export to .xlsx (SheetJS 0.18.5)
+       8. Presets & Location Switcher
+       ========================================================================== */
+    function setPresetAsset(name, category = '') {
+      activeBatch.assetName = name;
+      if (category) activeBatch.assetType = category;
+      document.getElementById('inputAssetName').value = name;
+      saveBatch();
+      render();
+
+      // Highlight active chip
+      document.querySelectorAll('.chip-btn').forEach(btn => {
+        btn.classList.toggle('chip-active', btn.textContent.includes(name));
+      });
+      showBanner(`Batch switched to: ${name}`, 'ready');
+      beep(700, 50);
+    }
+
+    function populateCustomLocations() {
+      const optGroup = document.getElementById('customLocationOptGroup');
+      // Keep only "+ Add Custom Location..." at the end
+      optGroup.innerHTML = '';
+      customLocations.forEach(loc => {
+        const opt = document.createElement('option');
+        opt.value = loc;
+        opt.textContent = `📍 ${loc}`;
+        optGroup.appendChild(opt);
+      });
+      const addOpt = document.createElement('option');
+      addOpt.value = '__NEW__';
+      addOpt.textContent = '➕ Add Custom Location...';
+      optGroup.appendChild(addOpt);
+    }
+
+    /* ==========================================================================
+       9. Export to .xlsx (SheetJS)
        ========================================================================== */
     function stamp() {
       const d = new Date();
@@ -1710,44 +2370,38 @@
         return;
       }
 
-      // Reverse order so row 2 is the very first unit scanned (oldest first)
+      // Oldest first so row 2 is the first item scanned
       const rows = [...items].reverse().map(i => {
         const r = HEADERS.map(() => '');
-        // Col D is Serial Number
-        r[SERIAL_COL] = String(i.serial);
-
-        // Batch defaults application if populated
-        if (batchDefaults.assetName) r[0] = String(batchDefaults.assetName);
-        if (batchDefaults.assetType) r[2] = String(batchDefaults.assetType);
-        if (batchDefaults.purchaseDate) r[6] = String(batchDefaults.purchaseDate);
-        if (batchDefaults.shop) r[7] = String(batchDefaults.shop);
-        if (batchDefaults.complex) r[8] = String(batchDefaults.complex);
-        if (batchDefaults.condition) r[9] = String(batchDefaults.condition);
-
+        // Exact column mapping for assets_import_template.xlsx:
+        r[0] = String(i.assetName || 'IT Asset');           // Col A: Asset Name
+        r[1] = String(i.assetTag || '');                    // Col B: Asset Tag
+        r[2] = String(i.assetType || 'Equipment');          // Col C: Asset Type
+        r[SERIAL_COL] = String(i.serial);                   // Col D: Serial Number
+        r[6] = String(i.scannedAt ? i.scannedAt.split('T')[0] : ''); // Col G: Purchase / Scan Date
+        r[7] = String(i.location || 'Head Office');         // Col H: Shop / Location
+        r[8] = String(i.complex || 'Northern Region');      // Col I: Complex / Region
+        r[9] = String(i.condition || 'Good');               // Col J: Condition
         return r;
       });
 
-      // aoa_to_sheet with cell-by-cell string enforcement to guarantee leading zeros
       const wsData = [HEADERS, ...rows];
       const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-      // Explicitly mark all cells as type 's' (string/text) to preserve leading zeros
+      // Explicitly mark all cells as string to preserve leading zeroes
       const range = XLSX.utils.decode_range(ws['!ref']);
       for (let R = range.s.r; R <= range.e.r; ++R) {
         for (let C = range.s.c; C <= range.e.c; ++C) {
           const cellRef = XLSX.utils.encode_cell({ c: C, r: R });
           if (ws[cellRef] && ws[cellRef].v !== undefined) {
-            ws[cellRef].t = 's'; // Force string type
+            ws[cellRef].t = 's';
             ws[cellRef].v = String(ws[cellRef].v);
           }
         }
       }
 
-      // Column widths based on header length
       ws['!cols'] = HEADERS.map(h => ({ wch: Math.max(h.length + 3, 16) }));
-
       const wb = XLSX.utils.book_new();
-      // Sheet name MUST be exactly 'Assets'
       XLSX.utils.book_append_sheet(wb, ws, 'Assets');
 
       const fileName = 'assets_import_' + stamp() + '.xlsx';
@@ -1759,21 +2413,20 @@
     }
 
     /* ==========================================================================
-       8. Modals, Collapsibles & UI Event Wiring
+       10. Modals & UI Events
        ========================================================================== */
     function toggleCollapsible(cardId) {
-      const card = document.getElementById(cardId);
-      card.classList.toggle('collapsible-open');
+      document.getElementById(cardId).classList.toggle('collapsible-open');
     }
 
     function openEditModal(item) {
       editingItemId = item.id;
-      const input = document.getElementById('editInput');
-      const err = document.getElementById('editError');
-      input.value = item.serial;
-      err.style.display = 'none';
+      document.getElementById('editSerialInput').value = item.serial;
+      document.getElementById('editAssetNameInput').value = item.assetName || '';
+      document.getElementById('editLocationInput').value = item.location || '';
+      document.getElementById('editError').style.display = 'none';
       document.getElementById('editModal').classList.add('modal-active');
-      input.focus();
+      document.getElementById('editSerialInput').focus();
     }
 
     function closeEditModal() {
@@ -1783,10 +2436,12 @@
 
     function saveEditedItem() {
       if (!editingItemId) return;
-      const input = document.getElementById('editInput');
+      const serialInput = document.getElementById('editSerialInput');
+      const assetInput = document.getElementById('editAssetNameInput');
+      const locInput = document.getElementById('editLocationInput');
       const err = document.getElementById('editError');
-      let val = input.value.trim();
 
+      let val = serialInput.value.trim();
       if (settings.trimSpaces) val = val.replace(/\s+/g, '');
       if (settings.upperCase) val = val.toUpperCase();
 
@@ -1796,7 +2451,6 @@
         return;
       }
 
-      // Duplicate check against other items
       const dup = items.find(i => i.id !== editingItemId && i.serial.toUpperCase() === val.toUpperCase());
       if (dup) {
         err.textContent = `Serial "${val}" already exists in the list.`;
@@ -1807,49 +2461,124 @@
       const item = items.find(i => i.id === editingItemId);
       if (item) {
         item.serial = val;
+        item.assetName = assetInput.value.trim() || item.assetName;
+        item.location = locInput.value.trim() || item.location;
         save();
         render();
-        showBanner(`Updated to: ${val}`, 'good');
+        showBanner(`Updated: ${val} (${item.assetName})`, 'good');
         beep(880, 80);
       }
       closeEditModal();
     }
 
-    // Initialize DOM events once loaded
+    /* ==========================================================================
+       11. DOM Ready Initialization
+       ========================================================================== */
     document.addEventListener('DOMContentLoaded', () => {
       load();
+      populateCustomLocations();
 
-      // Reflect settings in UI controls
+      // Reflect active batch in inputs
+      const locSelect = document.getElementById('selectLocation');
+      if (locSelect) {
+        if ([...locSelect.options].some(o => o.value === activeBatch.location)) {
+          locSelect.value = activeBatch.location;
+        } else if (activeBatch.location) {
+          customLocations.push(activeBatch.location);
+          populateCustomLocations();
+          locSelect.value = activeBatch.location;
+        }
+      }
+
+      const nameInput = document.getElementById('inputAssetName');
+      if (nameInput) {
+        nameInput.value = activeBatch.assetName;
+      }
+
+      // Location select handler
+      locSelect.onchange = (e) => {
+        if (e.target.value === '__NEW__') {
+          document.getElementById('newLocationInput').value = '';
+          document.getElementById('customLocationModal').classList.add('modal-active');
+          document.getElementById('newLocationInput').focus();
+        } else {
+          activeBatch.location = e.target.value;
+          saveBatch();
+          render();
+          showBanner(`Location set to: ${activeBatch.location}`, 'ready');
+        }
+      };
+
+      // Custom location modal buttons
+      document.getElementById('btnCancelCustomLocation').onclick = () => {
+        document.getElementById('customLocationModal').classList.remove('modal-active');
+        locSelect.value = activeBatch.location;
+      };
+
+      document.getElementById('btnSaveCustomLocation').onclick = () => {
+        const val = document.getElementById('newLocationInput').value.trim();
+        if (val) {
+          if (!customLocations.includes(val)) {
+            customLocations.push(val);
+            saveCustomLocations();
+            populateCustomLocations();
+          }
+          activeBatch.location = val;
+          locSelect.value = val;
+          saveBatch();
+          render();
+          showBanner(`New location added: ${val}`, 'good');
+        }
+        document.getElementById('customLocationModal').classList.remove('modal-active');
+      };
+
+      // Asset Name input change
+      nameInput.addEventListener('input', (e) => {
+        activeBatch.assetName = e.target.value.trim() || 'IT Asset';
+        // Auto-assign category
+        const valLower = activeBatch.assetName.toLowerCase();
+        if (valLower.includes('printer') || valLower.includes('laserjet') || valLower.includes('epson')) {
+          activeBatch.assetType = 'Printer / Copier';
+        } else if (valLower.includes('laptop') || valLower.includes('notebook')) {
+          activeBatch.assetType = 'Laptop / Notebook';
+        } else if (valLower.includes('pc') || valLower.includes('desktop') || valLower.includes('optiplex')) {
+          activeBatch.assetType = 'Desktop PC / Computer';
+        } else if (valLower.includes('monitor') || valLower.includes('display')) {
+          activeBatch.assetType = 'Monitor / Display';
+        } else if (valLower.includes('ups')) {
+          activeBatch.assetType = 'Power / UPS';
+        } else if (valLower.includes('switch') || valLower.includes('router')) {
+          activeBatch.assetType = 'Networking';
+        }
+        saveBatch();
+        render();
+      });
+
+      // Camera control buttons
+      document.getElementById('btnStart').onclick = () => {
+        if (scanning) {
+          stopScan();
+        } else {
+          startScan();
+        }
+      };
+
+      document.getElementById('btnTorch').onclick = toggleTorch;
+      document.getElementById('btnLowLight').onclick = toggleLowLightBoost;
+      document.getElementById('btnZoom').onclick = toggleZoom;
+
+      // Settings checkboxes
+      document.getElementById('toggleHardwareAccel').checked = settings.hardwareAccel;
       document.getElementById('toggleConfirmScan').checked = settings.confirmScan;
       document.getElementById('toggleUppercase').checked = settings.upperCase;
       document.getElementById('toggleTrimSpaces').checked = settings.trimSpaces;
       document.getElementById('toggleVibration').checked = settings.vibration;
       document.getElementById('inputMinLength').value = settings.minLen;
 
-      // Reflect batch defaults in UI
-      document.getElementById('defAssetName').value = batchDefaults.assetName || '';
-      document.getElementById('defAssetType').value = batchDefaults.assetType || '';
-      document.getElementById('defShop').value = batchDefaults.shop || '';
-      document.getElementById('defComplex').value = batchDefaults.complex || '';
-      document.getElementById('defCondition').value = batchDefaults.condition || '';
-      document.getElementById('defPurchaseDate').value = batchDefaults.purchaseDate || '';
-      updateDefaultsBadge();
-
-      // Sound button state
-      const updateSoundIcon = () => {
-        document.getElementById('soundIconOn').style.display = settings.sound ? 'block' : 'none';
-        document.getElementById('soundIconOff').style.display = settings.sound ? 'none' : 'block';
-      };
-      updateSoundIcon();
-
-      document.getElementById('btnSoundToggle').onclick = () => {
-        settings.sound = !settings.sound;
+      document.getElementById('toggleHardwareAccel').onchange = (e) => {
+        settings.hardwareAccel = e.target.checked;
         saveSettings();
-        updateSoundIcon();
-        if (settings.sound) beep(880, 80);
       };
-
-      // Settings toggles
       document.getElementById('toggleConfirmScan').onchange = (e) => {
         settings.confirmScan = e.target.checked;
         saveSettings();
@@ -1873,58 +2602,19 @@
         saveSettings();
       };
 
-      // Batch Defaults Save & Clear
-      function updateDefaultsBadge() {
-        const hasDefaults = Object.values(batchDefaults).some(v => v.trim() !== '');
-        const badge = document.getElementById('defaultsStatusBadge');
-        if (hasDefaults) {
-          badge.textContent = 'Active';
-          badge.style.background = '#065F46';
-          badge.style.color = '#A7F3D0';
-        } else {
-          badge.textContent = 'Optional';
-          badge.style.background = '#1E3A8A';
-          badge.style.color = '#93C5FD';
-        }
-      }
-
-      document.getElementById('btnSaveDefaults').onclick = () => {
-        batchDefaults.assetName = document.getElementById('defAssetName').value.trim();
-        batchDefaults.assetType = document.getElementById('defAssetType').value.trim();
-        batchDefaults.shop = document.getElementById('defShop').value.trim();
-        batchDefaults.complex = document.getElementById('defComplex').value.trim();
-        batchDefaults.condition = document.getElementById('defCondition').value.trim();
-        batchDefaults.purchaseDate = document.getElementById('defPurchaseDate').value;
-        saveDefaultsToStorage();
-        updateDefaultsBadge();
-        showBanner('Batch defaults saved for .xlsx export', 'ready');
-        beep(750, 60);
+      // Sound button
+      const updateSoundIcon = () => {
+        document.getElementById('soundIconOn').style.display = settings.sound ? 'block' : 'none';
+        document.getElementById('soundIconOff').style.display = settings.sound ? 'none' : 'block';
       };
+      updateSoundIcon();
 
-      document.getElementById('btnClearDefaults').onclick = () => {
-        batchDefaults = { assetName: '', assetType: '', shop: '', complex: '', condition: '', purchaseDate: '' };
-        document.getElementById('defAssetName').value = '';
-        document.getElementById('defAssetType').value = '';
-        document.getElementById('defShop').value = '';
-        document.getElementById('defComplex').value = '';
-        document.getElementById('defCondition').value = '';
-        document.getElementById('defPurchaseDate').value = '';
-        saveDefaultsToStorage();
-        updateDefaultsBadge();
-        showBanner('Batch defaults cleared', 'ready');
+      document.getElementById('btnSoundToggle').onclick = () => {
+        settings.sound = !settings.sound;
+        saveSettings();
+        updateSoundIcon();
+        if (settings.sound) beep(880, 80);
       };
-
-      // Camera toggle button
-      document.getElementById('btnStart').onclick = () => {
-        if (scanning) {
-          stopScan();
-        } else {
-          startScan();
-        }
-      };
-
-      // Torch toggle
-      document.getElementById('btnTorch').onclick = toggleTorch;
 
       // Confirm mode actions
       document.getElementById('btnConfirmSave').onclick = () => {
@@ -1938,7 +2628,7 @@
         } else {
           beep(220);
           flash('bad');
-          showBanner(r.reason + (r.serial ? ': ' + r.serial : ''), 'bad');
+          showBanner(r.reason, 'bad');
         }
       };
 
@@ -1948,7 +2638,7 @@
         beep(330, 80);
       };
 
-      // Manual entry (Enter key support & retaining focus for barcode guns)
+      // Manual entry
       const manualInput = document.getElementById('manualInput');
       const submitManual = () => {
         const val = manualInput.value;
@@ -1962,7 +2652,7 @@
         } else {
           beep(220);
           flash('bad');
-          showBanner(r.reason + (r.serial ? ': ' + r.serial : ''), 'bad');
+          showBanner(r.reason, 'bad');
         }
         manualInput.focus();
       };
@@ -1990,7 +2680,7 @@
         document.getElementById('clearModal').classList.add('modal-active');
       };
 
-      // Clear modal buttons
+      // Clear modal
       document.getElementById('btnCancelClear').onclick = () => {
         document.getElementById('clearModal').classList.remove('modal-active');
       };
@@ -1999,10 +2689,10 @@
         document.getElementById('clearModal').classList.remove('modal-active');
       };
 
-      // Edit modal buttons
+      // Edit modal
       document.getElementById('btnCancelEdit').onclick = closeEditModal;
       document.getElementById('btnSaveEdit').onclick = saveEditedItem;
-      document.getElementById('editInput').addEventListener('keydown', (e) => {
+      document.getElementById('editSerialInput').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           saveEditedItem();
@@ -2011,10 +2701,9 @@
         }
       });
 
-      // Global hotkey support (Ctrl+Z / Cmd+Z for undo)
+      // Hotkey (Ctrl+Z / Cmd+Z for undo)
       window.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-          // If not currently typing in a modal or input
           if (document.activeElement.tagName !== 'INPUT') {
             e.preventDefault();
             undoLastScan();
@@ -2022,14 +2711,13 @@
         }
       });
 
-      // Render initial items
       render();
 
-      // Register PWA Service Worker if available
+      // Register PWA Service Worker
       if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        navigator.serviceWorker.register('./sw.js').catch(err => {
-          console.log('SW registration note:', err);
-        });
+        navigator.serviceWorker.register('./sw.js?v=2').then(reg => {
+          reg.update();
+        }).catch(() => {});
       }
     });
   </script>
